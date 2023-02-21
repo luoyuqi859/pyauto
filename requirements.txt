@@ -1,0 +1,16 @@
+pytest==7.2.1
+tornado>=4.3
+facebook-wda>=1.0.5
+pytest-rerunfailures==11.1
+pytest-sugar==0.9.6
+pytest-instafail==0.4.2
+allure-pytest==2.12.0
+allure-python-commons==2.12.0
+pytest-random-order==1.1.0
+pytest-metadata==2.0.4
+pytest-repeat==0.9.1
+loguru==0.6.0
+PyYaml==5.4.1
+pydantic==1.10.5
+xlwings==0.29.1
+opencv-python==4.5.3.56
