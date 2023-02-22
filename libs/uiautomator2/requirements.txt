@@ -9,7 +9,7 @@ adbutils>=0.11.0,<1.0
 Deprecated~=1.2.6
 
 # Not supported in QPython
-pillow
+Pillow
 lxml>=4.3
 cached-property>=1.5.1,<2.0
 packaging~=20.3

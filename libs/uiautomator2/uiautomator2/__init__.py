@@ -959,11 +959,11 @@ class _Device(_BaseClient):
             import numpy as np
             nparr = np.fromstring(r.content, np.uint8)
             return cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        elif format == 'raw':
-            return r.content
-        elif format == "base64":
+        elif format == 'base64':
             buff = io.BytesIO(r.content)
             return buff.getvalue()
+        elif format == 'raw':
+            return r.content
         else:
             raise ValueError("Invalid format {}".format(format))
 

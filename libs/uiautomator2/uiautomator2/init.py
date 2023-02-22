@@ -150,7 +150,7 @@ class Initer():
         self.abis = (d.getprop('ro.product.cpu.abilist').strip()
                      or self.abi).split(",")
         
-		# GENT 改为所有IP地址都可以访问，方便调试测试
+        # GENT 改为所有IP地址都可以访问，方便调试测试
         self.__atx_listen_addr = "0.0.0.0:7912"
         self.logger = setup_logger(level=loglevel)
         # self.logger.debug("Initial device %s", device)

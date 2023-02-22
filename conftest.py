@@ -49,7 +49,6 @@ def pytest_terminal_summary(terminalreporter):
     """
     收集测试结果
     """
-
     _TOTAL = terminalreporter._numcollected  # 总数
     _PASSED = len(terminalreporter.stats.get('passed', []))  # 通过
     _FAILED = len(terminalreporter.stats.get('failed', []))  # 失败
@@ -57,7 +56,6 @@ def pytest_terminal_summary(terminalreporter):
     _SKIP = len(terminalreporter.stats.get('skipped', []))  # 跳过
     _RERUN = len(terminalreporter.stats.get('rerun', []))  # 失败重跑总次数
     _TIMES = round(time.time() - terminalreporter._sessionstarttime, 2)  # 测试用时，保留两位
-
     logger.info(f"用例总数: {_TOTAL}")
     logger.success(f"成功用例数: {_PASSED}")
     logger.error(f"失败用例数: {_FAILED}")

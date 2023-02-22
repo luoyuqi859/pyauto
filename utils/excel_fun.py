@@ -6,7 +6,7 @@
 @Created: 2023/2/20 9:48
 """
 import shutil
-
+import time
 
 import xlwings
 
@@ -20,7 +20,7 @@ class ErrorCaseExcel:
 
     def __init__(self, file_path):
         _excel_template = settings.root_path / "utils" / "abnormal_case.xlsx"
-
+        time.sleep(1)
         shutil.copy(src=_excel_template, dst=file_path)
         self.case_file = Path(file_path) / "abnormal_case.xlsx"
         # 打开程序（只打开不新建)

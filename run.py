@@ -65,17 +65,14 @@ def run():
                    --maxfail: 设置最大失败次数，当超出这个阈值时，则不会在执行测试用例
                     "--reruns=3", "--reruns-delay=2"
         """
-        shutil.copy(src=settings.root_path / "env" / "categories.json", dst=tmp)
-        shutil.copy(src=settings.root_path / "env" / "environment.properties", dst=tmp)
-        shutil.copy(src=settings.root_path / "env" / "executor.json", dst=tmp)
+        shutil.copy(src=settings.root_path / "allure_env" / "categories.json", dst=tmp)
+        shutil.copy(src=settings.root_path / "allure_env" / "environment.properties", dst=tmp)
+        shutil.copy(src=settings.root_path / "allure_env" / "executor.json", dst=tmp)
         os.system(f"{settings.allure_bat} generate {tmp} -o {html} --clean")
         logger.info(f"report save path:{report_path}")
         allure_data = AllureDataCollect(report_path)
         data = allure_data.get_case_count()
-
         shutil.copy(src=settings.root_path / "utils" / "openReport.bat", dst=report_path)
-        if config.excel_report:
-            ErrorCaseExcel(report_path).write_case()
         notification_mapping = {
             NotificationType.FEI_SHU.value: FeiShuTalkChatBot(data).post
         }

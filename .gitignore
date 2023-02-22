@@ -19,6 +19,7 @@ lib64/
 parts/
 sdist/
 var/
+report/
 wheels/
 pip-wheel-metadata/
 share/python-wheels/
@@ -106,7 +107,7 @@ celerybeat.pid
 .venv
 env/
 venv/
-ENV/
+env/
 env.bak/
 venv.bak/
 
