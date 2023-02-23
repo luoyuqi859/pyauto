@@ -10,6 +10,8 @@ import time
 
 import uiautomator2
 
+from conf import settings
+from uiauto.android.adb import ADB
 from uiauto.android.base import BaseDevice
 
 from utils.log import logger
@@ -20,10 +22,22 @@ class AndroidDevice(BaseDevice):
     def __init__(self, device: uiautomator2.Device, **kwargs):
         super().__init__(**kwargs)
         self.d = device
+        # 操作设置
+        self.d.implicitly_wait(settings.ELEMENT_WAIT_TIMEOUT)
+        self.d.settings['operation_delay'] = (settings.FORCE_STEP_INTERVAL_BEFORE, settings.FORCE_STEP_INTERVAL_AFTER)
+        self.d.settings['operation_delay_methods'] = ['click', 'swipe', 'drag', 'press']
+        self.d.jsonrpc.setConfigurator({"waitForIdleTimeout": 100})
+        self._adb = None
 
     @property
     def id(self):
         return self.d.serial
+
+    @property
+    def adb(self):
+        if not self._adb:
+            self.self._adb = ADB(device_id=self.id)
+        return self.self._adb
 
     def __getattr__(self, item):
         return self.get(item, None) if self.get(item, None) else getattr(self.d, item, None)

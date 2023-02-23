@@ -42,6 +42,9 @@ def pytest_runtest_makereport(item, call):
 
 def pytest_collection_modifyitems(session, items):
     """改变用例顺序"""
+    for item in items:
+        item.name = item.name.encode("utf-8").decode("unicode_escape")
+        item._nodeid = item.nodeid.encode("utf-8").decode("unicode_escape")
     logger.info(f"收集到的测试用例：{items}")
 
 

@@ -80,7 +80,7 @@ class Logger:
             # 水槽，分流器，可以用来输入路径
             sink=self.get_log_path(),
             # 日志创建周期
-            rotation='500MB',
+            rotation='00:00',
             # 保存
             retention='10 days',
             # 文件的压缩格式

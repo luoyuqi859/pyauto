@@ -47,11 +47,11 @@ def run():
                         开始执行{config.project_name}项目... 佛祖保佑       全部跑过
             """
         )
-        report_path = settings.root_path / "report" / config.project_name / settings.current_time
-        tmp = report_path / "tmp"
-        html = report_path / "html"
+        settings.report_path.mkdir()
+        tmp = settings.report_path / "tmp"
+        html = settings.report_path / "html"
         pytest.main(
-            ['--reruns=1', '--reruns-delay=2', "--count=1", "--durations=10", "--random-order",
+            ['--reruns=1', '--reruns-delay=2', "--count=1", "--random-order",
              f'--alluredir={tmp}',
              "--clean-alluredir"])
         """
@@ -65,14 +65,14 @@ def run():
                    --maxfail: 设置最大失败次数，当超出这个阈值时，则不会在执行测试用例
                     "--reruns=3", "--reruns-delay=2"
         """
-        shutil.copy(src=settings.root_path / "allure_env" / "categories.json", dst=tmp)
-        shutil.copy(src=settings.root_path / "allure_env" / "environment.properties", dst=tmp)
-        shutil.copy(src=settings.root_path / "allure_env" / "executor.json", dst=tmp)
+        shutil.copy(src=settings.root_path / "conf" / "categories.json", dst=tmp)
+        shutil.copy(src=settings.root_path / "conf" / "environment.properties", dst=tmp)
+        shutil.copy(src=settings.root_path / "conf" / "executor.json", dst=tmp)
         os.system(f"{settings.allure_bat} generate {tmp} -o {html} --clean")
-        logger.info(f"report save path:{report_path}")
-        allure_data = AllureDataCollect(report_path)
+        logger.info(f"report save path:{settings.report_path}")
+        allure_data = AllureDataCollect(settings.report_path)
         data = allure_data.get_case_count()
-        shutil.copy(src=settings.root_path / "utils" / "openReport.bat", dst=report_path)
+        shutil.copy(src=settings.root_path / "utils" / "openReport.bat", dst=settings.report_path)
         notification_mapping = {
             NotificationType.FEI_SHU.value: FeiShuTalkChatBot(data).post
         }
@@ -80,7 +80,7 @@ def run():
             notification_mapping.get(config.notification_type)()
 
         if config.excel_report:
-            ErrorCaseExcel(report_path).write_case()
+            ErrorCaseExcel(settings.report_path).write_case()
         # 程序运行之后，自动启动报告，如果不想启动报告，可注释这段代码
         os.system(f"{settings.allure_bat} open {html} -p 9999")
 

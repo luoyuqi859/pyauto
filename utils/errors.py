@@ -12,39 +12,26 @@ from contextlib import contextmanager
 from utils.log import logger
 
 
-class TestError(Exception):
-    def __init__(self, message, *args, **kwargs):
+class BaseError(Exception):
+    """Base class for exceptions in this module."""
+
+    def __init__(self, message=""):
         self.message = message
-        self.data = kwargs.pop('data', None)
-        if args or kwargs:
-            self.message = message.format(*args, **kwargs)
 
-    # def __str__(self):
-    #     return f'{self.__class__.__name__}({self.message})'
+    def __repr__(self):
+        return repr(self.message)
 
 
-class TestFailedError(TestError):
-    """"""
-
-    def __init__(self, *args, optional=False, **kwargs):
-        self.optional = optional
-        super().__init__(*args, **kwargs)
+class FileNotExistError(BaseError):
+    """Image does not exist."""
 
 
-class TestBlockedError(TestError):
-    """"""
-
-
-class TestSkippedError(TestError):
-    """"""
-
-
-class ManualError(TestError):
-    """"""
-
-
-class InvalidTestError(TestError):
-    """"""
+class InvalidMatchingMethodError(BaseError):
+    """
+        This is InvalidMatchingMethodError BaseError
+        When an invalid matching method is used in settings.
+    """
+    pass
 
 
 @contextmanager

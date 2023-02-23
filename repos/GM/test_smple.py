@@ -5,17 +5,15 @@
 @File: test_smple.py
 @Created: 2023/2/20 13:50
 """
-
-import time
-
-import allure
-
+#
+# import time
+# import allure
 # from repos.GM.keywords.gm_vehicle_sim import GMSignal
 # from uiauto.android.device import AndroidDevice
 #
 # GMS = GMSignal()
-
-
+#
+#
 # def setup():
 #     with allure.step('初始化TeenDriver'):
 #         GMS.sendSignal(Signal='TeenDrvFtrAvl', Value=1, Type='Signal', Mode='HS')
