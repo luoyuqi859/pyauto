@@ -385,7 +385,7 @@ class CpuMonitor(object):
 
 
 if __name__ == '__main__':
-    monitor = CpuMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packages=["com.taou.maimai"],
+    monitor = CpuMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packages=["com.baidu.tieba"],
                          interval=5)
     monitor.start(timeoperator.strftime_now("%Y_%m_%d_%H_%M_%S"))
     time.sleep(20)
