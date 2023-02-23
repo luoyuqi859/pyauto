@@ -9,7 +9,9 @@ import time
 
 import pytest
 
+from conf import settings
 from utils.log import logger
+from utils import config
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -72,6 +74,20 @@ def pytest_terminal_summary(terminalreporter):
     except ZeroDivisionError:
         logger.info("用例成功率: 0.00 %")
 
+
+@pytest.fixture(scope="session", autouse=True)
+def performance():
+    """
+    统计设备cpu情况
+    @return:
+    """
+    if config.perf.switch:
+        app = config.perf.package
+        logger.info(f"即将开启设备监控,app: {app}")
+        t = settings.current_time
+    else:
+        logger.info("没有开启性能监控功能")
+        yield
 
 # def pytest_report_teststatus(report, config):
 #     """自定义测试结果"""

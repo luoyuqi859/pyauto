@@ -20,6 +20,11 @@ class Serial(BaseModel):
     serial: Union[Text, None]
 
 
+class Pref(BaseModel):
+    switch: bool
+    package: Union[Text, None]
+
+
 class NotificationType(Enum):
     """ 自动化通知方式 """
     DEFAULT = 0
@@ -36,6 +41,7 @@ class Config(BaseModel):
     notification_type: int = 0
     excel_report: bool
     device: "Serial" = "auto"
+    perf: "Pref"
 
 
 @dataclass

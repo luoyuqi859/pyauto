@@ -8,8 +8,15 @@ notification_type: 0
 excel_report: True
 # 飞书通知
 lark:
-#  webhook: https://open.feishu.cn/open-apis/bot/v2/hook/6cc12558-21d9-4c51-87a3-8786657e4c16
   webhook: https://open.feishu.cn/open-apis/bot/v2/hook/e1d45e2f-acfd-4cf4-a521-94a30deb21b0
+
+# 测试对象性能监控
+perf:
+  # 性能监控开关
+  switch: False
+  # 对象apk
+  package: com.baidu.tieba
+
 
 
 

@@ -27,7 +27,7 @@
 
 ## 安装教程
 
-1、首先，执行本框架之前，需要搭建好 python、adb环境
-2、进入libs/uiautomator2目录下，点击install.bat，安装uiautomator2相关依赖
-3、项目根目录下执行 install.bat， 安装框架相关依赖
-4、双击run.bat运行
+* 首先，执行本框架之前，需要搭建好 python、adb环境 python版本:3.9.6
+* 进入libs/uiautomator2目录下，点击install.bat，安装uiautomator2相关依赖
+* 项目根目录下执行 install.bat， 安装框架相关依赖
+* 双击run.bat运行
