@@ -10,6 +10,13 @@ import time
 import pytest
 
 from conf import settings
+from uiauto.perf.cpu import CpuMonitor
+from uiauto.perf.flow import TrafficMonitor
+from uiauto.perf.fps import FPSMonitor
+from uiauto.perf.memory import MemMonitor
+from uiauto.perf.power import PowerMonitor
+from uiauto.perf.pref_data_fun import PrefDataFun
+from uiauto.perf.thread_num import ThreadNumMonitor
 from utils.log import logger
 from utils import config
 
@@ -84,7 +91,33 @@ def performance():
     if config.perf.switch:
         app = config.perf.package
         logger.info(f"即将开启设备监控,app: {app}")
+        frequency = 5
         t = settings.current_time
+        cpu_monitor = CpuMonitor(packages=[app], interval=frequency)
+        traffic_monitor = TrafficMonitor(packages=[app], interval=frequency)
+        fps_monitor = FPSMonitor(package_name=app, frequency=frequency)
+        mem_monitor = MemMonitor(packages=[app], interval=frequency)
+        power_monitor = PowerMonitor(interval=frequency)
+        thread_num_monitor = ThreadNumMonitor(packagename=app, interval=frequency)
+
+        cpu_monitor.start(t)
+        traffic_monitor.start(t)
+        fps_monitor.start(t)
+        mem_monitor.start(t)
+        # power_monitor.start(t)
+        thread_num_monitor.start(t)
+        yield
+        cpu_monitor.stop()
+        traffic_monitor.stop()
+        fps_monitor.stop()
+        mem_monitor.stop()
+        # power_monitor.stop()
+        thread_num_monitor.stop()
+        try:
+            d = PrefDataFun()
+            d.all_handle()
+        except Exception as e:
+            logger.error(e)
     else:
         logger.info("没有开启性能监控功能")
         yield

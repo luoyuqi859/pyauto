@@ -479,7 +479,7 @@ class TrafficMonitor(object):
 
 
 if __name__ == "__main__":
-    monitor = TrafficMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packages=["com.baidu.tieba"],
+    monitor = TrafficMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packages=["com.gm.teenmode"],
                              interval=2)
     monitor.start(timeoperator.strftime_now("%Y_%m_%d_%H_%M_%S"))
     time.sleep(20)

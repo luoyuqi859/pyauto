@@ -12,13 +12,6 @@ from typing import Text, Union
 from pydantic import BaseModel
 
 
-
-xpath: Text
-resourceId: Text
-text: Text
-description: Text
-className: Text
-
 class Webhook(BaseModel):
     webhook: Union[Text, None]
 
