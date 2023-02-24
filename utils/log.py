@@ -13,6 +13,7 @@ import datetime
 import loguru
 
 from conf import settings
+from utils.time_fun import TimeOperator
 
 
 # 单例类的装饰器
@@ -78,7 +79,7 @@ class Logger:
     def logger_add(self):
         loguru.logger.add(
             # 水槽，分流器，可以用来输入路径
-            sink=self.get_log_path(),
+            sink=settings.report_path / f"runtime_{datetime.date.today()}.log",
             # 日志创建周期
             rotation='00:00',
             # 保存

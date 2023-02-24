@@ -49,7 +49,20 @@ class Selector(dict):
         super(Selector, self).__setitem__(self.__childOrSibling, [])
         super(Selector, self).__setitem__(self.__childOrSiblingSelector, [])
         for k in kwargs:
-            self[k] = kwargs[k]
+            if k == 'content':
+                self['description'] = kwargs[k]
+            elif k == 'contentContains' or k == 'content_contains':
+                self['descriptionContains'] = kwargs[k]
+            elif k == 'contentMatches' or k == 'content_matches':
+                self['descriptionMatches'] = kwargs[k]
+            elif k == 'contentStartsWith' or k == 'content_starts_with':
+                self['descriptionStartsWith'] = kwargs[k]
+            elif k == 'id':
+                self['resourceId'] = kwargs[k]
+            elif k == 'instance':
+                self['instance'] = kwargs[k] - 1
+            else:
+                self[k] = kwargs[k]
 
     def __str__(self):
         """ remove useless part for easily debugger """

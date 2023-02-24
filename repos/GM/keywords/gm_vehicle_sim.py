@@ -1,185 +1,64 @@
-import builtins as __builtin__
-import queue
-import socket
-import os, sys
 import json
-import time
-from queue import *
-from threading import Thread
+import socket
 import threading
-import logging
+import time
 import traceback
-from subprocess import check_output
+from queue import Queue
+
+from utils.log import logger
+from loguru import logger
 
 
 class GMVehicleSim:
 
-    def lag_factor(self):
-        return self.__lag
-
-    def __init__(self, server_address=None, rx_disabled=False, as_server=False, log_file=None):
-        """
-        Setup
-        Args:
-            server_address: defaults to localhost with correct port
-            as_server: allow to be used as simple single client connection
-            rx_disabled: Do not store in rx queue is not being used for memory usage.
-        Returns:
-            None
-        """
-        self.logger = logging.getLogger(__name__)
-
-        self.__lag = 0.85
-
-        self._rx_disabled = rx_disabled
-        self._as_server = as_server
-
+    def __init__(self, server_address=None):
         if not server_address:
             server_address = ('localhost', 55555)
         self._server_address = server_address
 
-        self._shutdown = threading.Event()
-
-        self._rx_queue = None
         self._tx_queue = None
-        self._log_queue = None
-
-        if log_file is None:
-            self._log_file_path = os.path.basename(__file__) + ".log"
-        else:
-            self._log_file_path = log_file
-
-        self._threads = []
-        '''
-        signal.signal(signal.SIGTERM, service_shutdown)
-        signal.signal(signal.SIGINT, service_shutdown)
-        '''
-
+        self._rx_queue = None
+        self._shutdown = threading.Event()
         self._connection = None
         self._connected = False
+        self._threads = []
 
-    def db(self):
-        """
-        Finds and opens ARXML Database from parent application
-        Returns:
-            Return None or Database in json formate
-        """
-        pathname = os.path.dirname(sys.argv[0])
-        fullpathname = os.path.abspath(pathname)
+    def get_connection(self):
+        try:
+            self._connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self._connection.connect(self._server_address)
+        except Exception as ex:
+            logger.warning(ex)
 
-        # two possible locations ?
-        find = "GMVehicleSimulator"
-        index = fullpathname.rfind(find)
-        if index < 0:
-            find = "gmvehiclesim"
+        return self._connection
 
-        index = fullpathname.rfind(find)
-        rootpath = fullpathname[:index]  # Returns from the beginning to pos 3
-        rootpath = os.path.join(rootpath, find)
-        rootpath = os.path.normpath(rootpath)
+    def open(self):
+        logger.info('connecting with: ' + str(self._server_address))
+        self._tx_queue = Queue()
+        self._rx_queue = Queue()
 
-        filepath = None
-        for root, dirs, files in os.walk(rootpath):
-            for file in files:
-                if file.endswith(".json"):
-                    filepath = os.path.join(root, file)
-                    break
+        # self.get_connection()
 
-        data = None
-        with open(filepath) as json_file:
-            data = json.load(json_file)
-
-        return data
-
-    def history(self):
-        """
-        Read contents of log
-        Returns:
-            None
-        """
-        lines = []
-        with open(self._log_file_path) as fp:
-            line = fp.readline()
-            while line:
-                lines.append(line)
-        return lines
-
-    def log(self, *args, **kwargs):
-        """
-        Send to logging and to file
-        Args:
-            same as "print"
-        Returns:
-            None
-        """
-        self._log_queue.put({'args': args, 'kwargs': kwargs})
-
-    def is_connected(self):
-        if self._as_server:
-            return self._connected
-        return self._connected and self._connection is not None
-
-    def open(self, blocking=True):
-        """
-        Connect to socket server
-        Args:
-            blocking: Keeps trying server until connected
-        Returns:
-            None
-        """
-        self.logger.info('connecting with: ' + str(self._server_address))
-
-        self.close()  # clear everything
-
-        # reset?
-        if not self._rx_disabled:
-            self._rx_queue = queue.Queue()
-        self._tx_queue = queue.Queue()
-        self._log_queue = queue.Queue()
-
-        self._shutdown.clear()
-
-        while True:
-            try:
-                if self._as_server is True:
-                    self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    self._server.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-                    self._server.bind(self._server_address)
-                    self._server.listen(1)  # allow only one client (so far)
-                else:
-                    self._connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    self._connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-                    self._connection.connect(self._server_address)
-            except Exception as ex:
-                self.logger.error(ex)
-                time.sleep(1)
-                pass  # eat-it
-            else:
-                break
-            finally:
-                if not blocking:
-                    break
+        try:
+            self._connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self._connection.connect(self._server_address)
+        except Exception as ex:
+            logger.warning(ex)
 
         self._connected = True
-
         self._threads = []  # reset?
-        if self._as_server is True:
-            self._threads.append(Thread(target=self._server_handler, args=[]))
-        self._threads.append(Thread(target=self._tx_handler, args=[]))
-        self._threads.append(Thread(target=self._rx_handler, args=[]))
-        self._threads.append(Thread(target=self._log_handler, args=[]))
+        self._threads.append(threading.Thread(target=self._tx_handler, args=[]))
+        self._threads.append(threading.Thread(target=self._rx_handler, args=[]))
 
         for thread in self._threads:
             thread.start()
 
-            pass
-
     def close(self):
-
-        # wait for log to finish writing...
-        if self._log_queue is not None:
-            while not self._log_queue.empty() or self._log_queue.unfinished_tasks > 0:
-                time.sleep(1)
+        self._shutdown.set()
+        self._connection.shutdown(socket.SHUT_WR)
+        self._connection.close()
 
         self._tx_queue = None
         self._rx_queue = None
@@ -187,15 +66,24 @@ class GMVehicleSim:
         self._connection = None
         self._connected = False
 
-        self._shutdown.set()
-
-        try:
-            self._connection.shutdown(socket.SHUT_WR)
-            self._connection.close()
-        except Exception as ex:
-            self.logger.error(ex)
-            time.sleep(1)
-        pass
+    def send(self, payload):
+        """
+        Adds to Tx Queue
+        Args:
+            signals: Arrary of signals.
+        Returns:
+            Return True or False if connected
+        """
+        # with self._tx_queue.mutex:
+        if self._tx_queue is not None:
+            if len(payload) > 0:
+                # Important not know number, but if send to many errors on json parsing...
+                chunks = self._divide_chunks(payload, 100)
+                for chunk in chunks:
+                    self._tx_queue.put(chunk)
+        else:
+            pass
+        return self._connected
 
     def receive(self):
         """
@@ -210,43 +98,6 @@ class GMVehicleSim:
             self._rx_queue.task_done()
         return result
 
-    def send(self, payload):
-        """
-            payload:CAN Signal
-        """
-        # with self._tx_queue.mutex:
-        if self._tx_queue is not None:
-            if len(payload) > 0:
-                # Important not know number, but if send to many errors on json parsing...
-                chunks = self._divide_chunks(payload, 100)
-                for chunk in chunks:
-                    self._tx_queue.put(chunk)
-        else:
-            pass
-        return self._connected
-
-    def _log_handler(self):
-        while not self._shutdown.is_set():
-            try:
-                # keep open, less cycle time
-                with open(self._log_file_path, 'a') as f:
-                    while not self._log_queue.empty():
-                        try:
-                            item = self._log_queue.get()
-                            self._log_queue.task_done()
-                            if item:
-                                __builtin__.print(*item['args'], **item['kwargs'], file=f)
-                                # self.logger.info(*item['args'],**item['kwargs'])
-                        except Exception as e:
-                            print(e)
-                            print(traceback.format_exc())
-                    f.flush()  # force flush if not done automatically
-            except Exception as e:
-                print(e)
-                print(traceback.format_exc())
-            time.sleep(3)  # seconds to keep file from opening and closing like crazy, and time to see if more things
-            # show up...
-
     def _tx_handler(self):
         while not self._shutdown.is_set():
             if self._tx_queue is not None and not self._tx_queue.empty() and self._connection is not None:
@@ -256,7 +107,7 @@ class GMVehicleSim:
                 self._tx_queue.task_done()
 
                 length = self._tx_queue.qsize()
-                self.logger.debug("Tx Queue: " + str(length))
+                logger.debug("Tx Queue: " + str(length))
 
                 if item:
                     try:
@@ -268,11 +119,11 @@ class GMVehicleSim:
                             except socket.error:
                                 self._connected = False
                                 break
-                    except Exception as e:
+                    except Exception as ex:
                         if self._shutdown.is_set():
                             break
-                        self.logger.error(traceback.format_exc())
-                        self.logger.error(e)
+                        logger.error(traceback.format_exc())
+                        logger.error(ex)  # Todo: handle better
                     finally:
                         pass  # tx_queue.task_done()
             else:
@@ -302,9 +153,7 @@ class GMVehicleSim:
                         # decode "list" message(s) at a time
                         try:
                             rx_buffer_temp = rx_buffer.decode()
-                        except Exception as ex:
-                            self.logger.error(traceback.format_exc())
-                            self.logger.error(ex)
+                        except:
                             continue  # need more data cannot decode
 
                         # parse signals array
@@ -328,7 +177,7 @@ class GMVehicleSim:
                             self._rx_queue.put(payload)
 
                             length = self._rx_queue.qsize()
-                            self.logger.debug("Rx Queue: " + str(length))
+                            logger.debug("Rx Queue: " + str(length))
                     else:
                         time.sleep(0.05)  # not completely lock up system!
                 else:
@@ -336,66 +185,19 @@ class GMVehicleSim:
             except Exception as ex:
                 if self._shutdown.is_set():
                     break
-                self.logger.error(traceback.format_exc())
-                self.logger.error(ex)
+                logger.error(traceback.format_exc())
+                logger.error(ex)  # Todo: handle better
             finally:
                 pass
 
-    def _server_handler(self):
-        while not self._shutdown.is_set():
-            try:
-                # waits for connection
-                connection, address = self._server.accept()  # NOTE:  single client connection support (currently)
-                self._connection = connection
-                # self._connection.setblocking(True)
-                self.logger.info("Connected: " + str(address))
-            except Exception as ex:
-                if self._shutdown.is_set():
-                    break
-                self.logger.error(traceback.format_exc())
-                self.logger.error(ex)
-            finally:
-                pass
-
-    def _divide_chunks(self, m, n):
+    def _divide_chunks(self, l, n):
         # looping till length l
-        for i in range(0, len(m), n):
-            yield m[i:i + n]
-
-    def getModelYear(self):
-        adb_output = check_output(["adb", "devices", "-l"])
-        # stdout of adb in adb_output.
-        val = adb_output.decode("utf-8").split()
-        return val
+        for i in range(0, len(l), n):
+            yield l[i:i + n]
 
 
-class GMSignal(GMVehicleSim):
-    # from docutils.nodes import entry
-    # Basic logging setup
-    # logging.basicConfig(level=logging.INFO)
-    # logger = logging.getLogger()
-    # logger.addHandler(logging.StreamHandler())  # pass logging to console
-    # include module (in path)
+class GMSignal():
 
-    _gmVehicleSim = GMVehicleSim()
-
-    # microsecond_now = int(round(datetime.now().microsecond))
-
-    def close(self, sig=None, frame=None):
-        """
-        Close (ctrl-c)
-        Args:
-            N/A
-        Returns:
-            None
-        """
-        GMSignal._gmVehicleSim.close()  # Note: will finally close when log queue is empty (since is slower and has to catch-up)
-        sys.exit(0)
-        # signal.signal(signal.SIGINT, close)  # register OS signal
-
-    # Message.Message(Message.SIGINT,close)
-
-    # Template as starting point to build off of...
     def sendSignal(self, Signal=None, Value=None, Type='Signal', Mode='HS', times=1):
         """
         方式一（发一个信号）：
@@ -406,6 +208,7 @@ class GMSignal(GMVehicleSim):
                        如：{”TeenDrvFtrAvl“：”1“，”AirQltySnsCstStAvl“：”0“}
         :param Value: None
         """
+        _gmVehicleSim = GMVehicleSim()
         payload_Tx = []
         if isinstance(Signal, dict):
             for i in Signal:
@@ -415,22 +218,17 @@ class GMSignal(GMVehicleSim):
         else:
             entry = {'Type': Type, 'Mode': Mode, 'Name': Signal, 'Value': str(Value)}
             payload_Tx.append(entry)
-        # payload_Tx.append(entry)
-        # entry = {'Type': 'Signal', 'Mode': 'HS', 'Name': 'TeenDrvFtrAvl', 'Value': '1'}
-        GMSignal._gmVehicleSim.open()  # defaults to localhost and correct port, also waits until socket is ready
+        _gmVehicleSim.open()
 
         try:
-            # Tx
             for _ in range(int(times)):
-                GMSignal._gmVehicleSim.send(payload_Tx)
+                _gmVehicleSim.send(payload_Tx)
                 # _gmVehicleSim.send_msg(  payload_Tx) # send
                 time.sleep(0.15)  # do not want to kill CPU, so play nice, but also go FAST...
+                _gmVehicleSim.close()
         except Exception as ex:
-            GMSignal.logger.error(ex)
-            GMSignal.close(None, None)
+            logger.error(ex)
+            _gmVehicleSim.close()
 
-    def thread_sendsignal(self, Signal, Value, times=10):
-        t1 = threading.Thread(target=self.sendSignal, args=(Signal, Value, 'Signal', 'HS', times))
-        t1.setDaemon(True)
-        t1.start()
 
+GMS = GMSignal()

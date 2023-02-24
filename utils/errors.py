@@ -23,7 +23,7 @@ class BaseError(Exception):
 
 
 class FileNotExistError(BaseError):
-    """Image does not exist."""
+    """file does not exist."""
 
 
 class InvalidMatchingMethodError(BaseError):
@@ -31,7 +31,10 @@ class InvalidMatchingMethodError(BaseError):
         This is InvalidMatchingMethodError BaseError
         When an invalid matching method is used in settings.
     """
-    pass
+
+
+class ElementNotFoundError(BaseError):
+    """element not found"""
 
 
 @contextmanager

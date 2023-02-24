@@ -16,6 +16,6 @@ report_path = root_path / "report" / config.project_name / current_time
 
 # Android
 ELEMENT_WAIT_TIMEOUT = 5  # 元素默认等待时间
-FORCE_STEP_INTERVAL_BEFORE = 0.5  # 测试操作前强制间隔时间
-FORCE_STEP_INTERVAL_AFTER = 0.5  # 测试操作后强制间隔时间
+FORCE_STEP_INTERVAL_BEFORE = 0.2  # 测试操作前强制间隔时间
+FORCE_STEP_INTERVAL_AFTER = 0.2  # 测试操作后强制间隔时间
 WAIT_FOR_DEVICE_TIMEOUT = 70

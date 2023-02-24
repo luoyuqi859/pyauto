@@ -9,10 +9,13 @@ import re
 import time
 
 import uiautomator2
+from cached_property import cached_property
 
 from conf import settings
 from uiauto.android.adb import ADB
+from uiauto.android.android_keys import AndroidKeys
 from uiauto.android.base import BaseDevice
+from utils.errors import ElementNotFoundError
 
 from utils.log import logger
 
@@ -33,39 +36,217 @@ class AndroidDevice(BaseDevice):
     def id(self):
         return self.d.serial
 
-    @property
-    def adb(self):
-        if not self._adb:
-            self.self._adb = ADB(device_id=self.id)
-        return self.self._adb
+    @cached_property
+    def adb_fp(self):
+        return ADB(device_id=self.id)
 
-    def __getattr__(self, item):
-        return self.get(item, None) if self.get(item, None) else getattr(self.d, item, None)
-
-    def __call__(self, **kwargs):
-        pass
-
-    def click(self, element, log_text):
+    def click(self, **element):
         """
         元素点击
-        element:元素名称
-        log_text:打印log的文案
-        xpath使用方法
-        1.包含
-        d.xpath(u"//android.widget.TextView[contains(@text,'购买 ¥')]").click()
-        2.全匹配
-        d.xpath(u"//android.widget.TextView[@text='购买 ¥4.99']").click()
-        3.匹配开始字符
-        d.xpath(u"//android.widget.TextView[starts-with(@text,'购买 ¥')]").click()
+        element:text="Settings" xpath="//*[@text='Settings']"
         :return:
         """
-        if str(element).startswith("com"):
-            self.d(resourceId=element).click()
-        elif re.findall("//", str(element)):
-            self.d.xpath(element).click()
+        selector = self.assert_exist(**element)
+        selector.click(),
+        logger.info("点击元素:「{}」".format(element))
+        return self
+
+    def press(self, key, meta=0, times=1):
+        """
+        按键操作
+
+        :param key: 键值，可以是按键名称或键值，或AndroidKeys枚举
+        :param meta: 修饰键
+        :param times: 按键次数
+        :return:
+        """
+        if isinstance(key, (int, AndroidKeys)):
+            for i in range(times):
+                self.d.press(key=key, meta=meta)
+                logger.info(f"press {key}")
         else:
-            self.d(text=element).click()
-        logger.info("点击元素:「{}」".format(log_text))
+            key_code = AndroidKeys.get_code(key)
+            for i in range(times):
+                self.d.press(key=key_code, meta=meta)
+                logger.info(f"press {key}")
+        return self
+
+    def get_element(self, **element):
+        '''
+        获取元素
+        :return:
+        '''
+        xpath = element.get("xpath", None)
+        if xpath:
+            return self.d.xpath(xpath)
+        else:
+            return self.d(**element)
+
+    def assert_exist(self, **element):
+        """
+        断言元素是否存在
+
+        :return:
+        """
+        selector = self.get_element(**element)
+        if not selector.exists:
+            raise ElementNotFoundError(f"{element} 不存在")
+        logger.info(f'断言元素存在: {element}, 成功')
+        return selector
+
+    def assert_not_exist(self, **element):
+        """
+        断言元素是否存在
+
+        :return:
+        """
+        selector = self.get_element(**element)
+        assert not selector.exists, f'{element} exists actually.'
+        logger.info(f'断言元素不存在: {element}, 成功')
+
+    def up(self, scale=0.9, times=1, duration=1.0, **kwargs):
+        """
+        上滑操作
+        :param scale: 滑动单位，默认0.9个单位
+        :param times: 滑动次数，默认1次
+        :param duration: 滑动时间，默认1.0秒
+        :return:
+        """
+        for i in range(times):
+            self.d.swipe_ext("up", scale, duration=duration, **kwargs)
+            logger.info("向上滑动")
+
+    def down(self, scale=0.9, times=1, duration=1.0, **kwargs):
+        """
+        下滑操作
+        :param scale: 滑动单位，默认0.9个单位
+        :param times: 滑动次数，默认1次
+        :param duration: 滑动时间，默认1.0秒
+        :return:
+        """
+        for i in range(times):
+            self.d.swipe_ext("down", scale, duration=duration, **kwargs)
+            logger.info("向下滑动")
+
+    def left(self, scale=0.9, times=1, duration=1.0, **kwargs):
+        """
+        左滑操作
+        :param scale: 滑动单位，默认0.9个单位
+        :param times: 滑动次数，默认1次
+        :param duration: 滑动时间，默认1.0秒
+        :return:
+        """
+        for i in range(times):
+            self.d.swipe_ext("left", scale, duration=duration, **kwargs)
+            logger.info("向左滑动")
+
+    def right(self, scale=0.9, times=1, duration=1.0, **kwargs):
+        """
+        右滑操作
+        :param scale: 滑动单位，默认0.9个单位
+        :param times: 滑动次数，默认1次
+        :param duration: 滑动时间，默认1.0秒
+        :return:
+        """
+        for i in range(times):
+            self.d.swipe_ext("right", scale, duration=duration, **kwargs)
+            logger.info("向右滑动")
+
+    def wait_until_element_found(self, param, timeout=30.0, retry_interval=2, wait_after_found=0.0):
+        """
+        定位元素，如果不存在就间隔若干秒后重试，直到元素定位成功或超时
+        :param param: xpath字符串 或 元素对象
+        :param timeout: 超时, 默认30秒
+        :param retry_interval: 间隔时间, 默认2秒
+        :param wait_after_found: 找到元素后，原地等待时间
+        :return:
+        """
+        element = self.d.xpath(param) if isinstance(param, str) else param
+        max_time = time.time() + timeout
+        while True:
+            try:
+                assert element.exists
+                if wait_after_found:
+                    logger.info("Element found，then sleep {} seconds".format(wait_after_found))
+                time.sleep(wait_after_found)
+                return element
+            except AssertionError:
+                param = param if isinstance(param, str) else param.selector
+                logger.warning("Element 【 {} 】 Not found, Retry...".format(param))
+                if time.time() > max_time > 0:
+                    raise AssertionError("Element 【 {} 】 located failed after {} timeout".format(param, timeout))
+                time.sleep(retry_interval)
+
+    def wait_for_click(self, param, wait_after_click=0.0, **kwargs):
+        """
+        判断UI元素是否存在, 不存在则等待UI元素在一定时间内出现，再进行点击
+        :param param: xpath字符串 或 元素对象
+        :param wait_after_click: 点击后等待时间
+        :return:
+        """
+        element = self.wait_until_element_found(param, **kwargs)
+        element.click()
+        if wait_after_click:
+            logger.info("Element found and click，then sleep {} seconds".format(wait_after_click))
+        time.sleep(wait_after_click)
+
+    def repeat_click(self, param, times, wait_after_repeat_click=0.0):
+        """
+        重复多次点击UI元素
+        :param param: xpath字符串 或 元素对象
+        :param times: 点击次数
+        :param wait_after_repeat_click: 重复点击后等待时间，默认为0.0
+        :return:
+        """
+        element = self.wait_until_element_found(param)
+        for i in range(times):
+            element.click()
+        if wait_after_repeat_click:
+            logger.info("Element click，then sleep {} seconds".format(wait_after_repeat_click))
+        time.sleep(wait_after_repeat_click)
+
+    def swipe_until_element_found(self, param, wait_after_found=0.0, **kwargs):
+        """
+        检查元素是否存在，若不存在则进行上滑，滑动后再次检查，直到滑动到页面底部
+        若找到元素则返回，否则滑动到页面底部后，仍未找到元素，则抛出异常，提示找不到元素
+        :param param: xpath字符串 或 元素对象
+        :param wait_after_found: 找到元素后，原地等待时间
+        :param kwargs:
+        :return:
+        """
+        element = self.d.xpath(param) if isinstance(param, str) else param
+        param = param if isinstance(param, str) else param.selector
+        while True:
+            try:
+                assert element.exists
+                if wait_after_found:
+                    logger.info("Element found，sleep {} seconds".format(wait_after_found))
+                time.sleep(wait_after_found)
+                return element
+            except AssertionError:
+                logger.warning("Element 【 {} 】 Not found, Continue to swipe up...".format(param))
+                # 获取滑动前页面下半部分的所有元素
+                page_content = self.d.dump_hierarchy()[(len(self.d.dump_hierarchy()) // 2):]
+                self.up(**kwargs)
+                time.sleep(0.5)
+                # 获取滑动后页面下半部分的所有元素，并与上一次滑动前的页面元素对比，页面元素没有变化时跳出循环
+                if self.d.dump_hierarchy()[(len(self.d.dump_hierarchy()) // 2):] == page_content:
+                    break
+        if not element.exists:
+            raise AssertionError("Element 【 {} 】 located failed in this page".format(param))
+
+    def swipe_for_click(self, param, wait_after_click=0.0, **kwargs):
+        """
+        判断UI元素是否存在, 不存在则持续向上滑动到底部，直到UI元素在页面内出现，再进行点击
+        :param param: xpath字符串 或 元素对象
+        :param wait_after_click: 点击后等待时间
+        :return:
+        """
+        element = self.swipe_until_element_found(param, **kwargs)
+        element.click()
+        if wait_after_click:
+            logger.info("Element found and click，then sleep {} seconds".format(wait_after_click))
+        time.sleep(wait_after_click)
 
     def click_advance(self, element_list):
         """
@@ -125,22 +306,6 @@ class AndroidDevice(BaseDevice):
         height = int(window_size[1])
         return width, height
 
-    def wipe_up(self, duration=0.5):
-        """
-        向上滑动,查看下面的内容
-        :return:
-        """
-        self.d.drag(self.width / 2, self.height * 3 / 4, self.width / 2, self.height / 4, duration)
-        logger.info("向上滑动")
-
-    def wipe_down(self, duration=0.5):
-        """
-        向下滑动，查看上面的内容
-        :return:
-        """
-        self.d.drag(self.width / 2, self.height / 4, self.width / 2, self.height * 3 / 4, duration)
-        logger.info("向下滑动")
-
     def direction_swipe(self, direction, element, steps=200):
         """
         方向滑动
@@ -191,14 +356,6 @@ class AndroidDevice(BaseDevice):
                 self.wipe_up()
                 max_count -= 1
                 logger.info("向上滑动")
-
-    def back(self):
-        """
-        模拟物理键返回
-        :return:
-        """
-        self.d.press("back")
-        logger.info("点击返回")
 
     def toast_show(self, text, duration=5):
         """
@@ -254,27 +411,6 @@ class AndroidDevice(BaseDevice):
         finally:
             return is_exist
 
-    def elements_exist(self, element):
-        """
-        断言当前页面元素情况，用于判断多个页面状态的判断
-        :param element:
-        :return:
-        """
-        is_exist = False
-        if self.d(text=element).exists(timeout=5):
-            is_exist = True
-        return is_exist
-
-    def assert_exist(self, element):
-        """
-        断言当前页面存在要查找的元素,存在则判断成功
-        wait Settings appear in 3s, same as .wait(3)
-        :param element:
-        :return:
-        """
-        assert self.d(text=element).exists(timeout=5) == True, "断言「{}」元素存在,失败了!".format(element)
-        logger.info(f'断言「{element}」元素存在,成功了!')
-
     def assert_not_exist(self, element):
         """
         假设九秒走满 还没有找到这个页面有这个元素 判断这个页面元素不存在
@@ -295,7 +431,7 @@ class AndroidDevice(BaseDevice):
         :param element:
         :return:
         """
-        element_details = self.d(localtion).info
+        element_details = self.d(**localtion).info
         assert element == element_details["text"], "断言「{}」位置没有「{}」元素失败!".format(localtion, element)
         logger.info("断言「{}」位置存在「{}」元素成功!".format(localtion, element))
 

@@ -110,9 +110,9 @@ class ErrorCaseExcel:
                 self.write_excel_content(position="H" + str(num), value=str(self.case_data.get_case_status_trace(data)))
 
                 num += 1
-            self.w_book.save()
-            self.w_book.close()
-            self.app.quit()
+        self.w_book.save()
+        self.w_book.close()
+        self.app.quit()
 
 
 if __name__ == '__main__':

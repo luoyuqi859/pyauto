@@ -31,3 +31,6 @@
 * 进入libs/uiautomator2目录下，点击install.bat，安装uiautomator2相关依赖
 * 项目根目录下执行 install.bat， 安装框架相关依赖
 * 双击run.bat运行
+
+## 问题
+* 如何对比两个文字的字体大小  333200
