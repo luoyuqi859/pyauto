@@ -15,7 +15,7 @@ lark:
 # 测试对象性能监控
 perf:
   # 性能监控开关
-  switch: True
+  switch: False
   # 对象apk
   package: com.gm.teenmode
 

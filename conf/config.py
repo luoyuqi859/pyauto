@@ -14,8 +14,11 @@ allure_bat = root_path / 'libs' / 'allure' / "bin" / "allure"
 current_time = timeoperator.strftime_now("%Y-%m-%d-%H-%M-%S")
 report_path = root_path / "report" / config.project_name / current_time
 
-# Android
+# u2
 ELEMENT_WAIT_TIMEOUT = 5  # 元素默认等待时间
 FORCE_STEP_INTERVAL_BEFORE = 0.2  # 测试操作前强制间隔时间
 FORCE_STEP_INTERVAL_AFTER = 0.2  # 测试操作后强制间隔时间
 WAIT_FOR_DEVICE_TIMEOUT = 70
+
+click_screenshots = True  # 默认点击截图开关
+

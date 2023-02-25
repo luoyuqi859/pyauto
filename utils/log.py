@@ -92,6 +92,27 @@ class Logger:
             enqueue=True
         )
 
+    def trace(self, msg: str):
+        return self.logger.trace(msg)
+
+    def debug(self, msg: str):
+        return self.logger.debug(msg)
+
+    def info(self, msg: str):
+        return self.logger.info(msg)
+
+    def success(self, msg: str):
+        return self.logger.success(msg)
+
+    def warning(self, msg: str):
+        return self.logger.warning(msg)
+
+    def error(self, msg: str):
+        return self.logger.error(msg)
+
+    def critical(self, msg: str):
+        return self.logger.critical(msg)
+
     @property
     def get_logger(self):
         return loguru.logger
