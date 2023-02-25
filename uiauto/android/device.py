@@ -5,6 +5,7 @@
 @File: device
 @Created: 2023/2/20 17:07
 """
+import math
 import re
 import time
 
@@ -14,7 +15,19 @@ from cached_property import cached_property
 from conf import settings
 from uiauto.android.adb import ADB
 from uiauto.android.android_keys import AndroidKeys
+from uiauto.android.plugins.accessory import Accessory
+from uiauto.android.plugins.airplane import Airplane
+from uiauto.android.plugins.app import App
 from uiauto.android.base import BaseDevice
+from uiauto.android.plugins.battery import UiaBattery
+from uiauto.android.plugins.bt import Bluetooth
+from uiauto.android.plugins.event import Event
+from uiauto.android.plugins.forward import Forward
+from uiauto.android.plugins.page import AndroidPage
+from uiauto.android.plugins.prop import Prop
+from uiauto.android.plugins.qs import QuickSettings
+from uiauto.android.plugins.swipe import UiaSwipe
+from uiauto.android.plugins.wifi import Wifi
 from utils.errors import ElementNotFoundError
 
 from utils.log import logger
@@ -25,11 +38,6 @@ class AndroidDevice(BaseDevice):
     def __init__(self, device: uiautomator2.Device, **kwargs):
         super().__init__(**kwargs)
         self.d = device
-        # 操作设置
-        self.d.implicitly_wait(settings.ELEMENT_WAIT_TIMEOUT)
-        self.d.settings['operation_delay'] = (settings.FORCE_STEP_INTERVAL_BEFORE, settings.FORCE_STEP_INTERVAL_AFTER)
-        self.d.settings['operation_delay_methods'] = ['click', 'swipe', 'drag', 'press']
-        self.d.jsonrpc.setConfigurator({"waitForIdleTimeout": 100})
         self._adb = None
 
     @property
@@ -40,13 +48,151 @@ class AndroidDevice(BaseDevice):
     def adb_fp(self):
         return ADB(device_id=self.id)
 
+    @property
+    def event(self):
+        return Event(self.d)
+
+    @property
+    def prop(self):
+        return Prop(self.d)
+
+    @property
+    def app(self):
+        return App(self.d)
+
+    @property
+    def qs(self):
+        return QuickSettings(self.d)
+
+    @property
+    def battery(self):
+        return UiaBattery(self.d)
+
+    @property
+    def bt(self):
+        return Bluetooth(self.d)
+
+    @property
+    def airplane(self):
+        return Airplane(self.d)
+
+    @property
+    def wifi(self):
+        return Wifi(self.d)
+
+    @property
+    def accessory(self):
+        return Accessory(self.d)
+
+    @property
+    def forward(self):
+        return Forward(self)
+
+    @property
+    def page(self):
+        return AndroidPage(device=self.d)
+
+    @property
+    def swipe(self):
+        return UiaSwipe(self)
+
+    @property
+    def window_size(self):
+        """
+        Documents:
+            Resolution size
+        Return:
+            return (width, height)
+        """
+        return self.d.window_size()
+
+    @property
+    def is_multi_window_mode(self):
+        """
+        是否处于分屏状态
+
+        :return:
+        """
+        source = self.d.dump_hierarchy()
+        p = re.compile(r'package="\S+"')
+        _list = p.findall(source)
+        return len(set(_list)) > 2
+
+    def abs_pos(self, x, y):
+        w, h = self.window_size
+        if x is not None:
+            x = int(x) if x > 1 else int(x * w)
+        if y is not None:
+            y = int(y) if y > 1 else int(y * h)
+        return x, y
+
+    def rel_pos(self, x, y):
+        w, h = self.window_size
+        x = x / w if x > 1 else x
+        y = y / h if y > 1 else y
+        return x, y
+
+    def calc_swipe_steps(self, distance=1.0, vertical=True):
+        """
+        计算滑动所需要的步数，默认纵向滑动一屏（distance=1）需要的步数是55
+
+        :param distance: 滑动距离，取值范围在 0 ~ 1
+        :param vertical: 是否纵向滑动
+        :return:
+        """
+        if vertical:
+            return math.ceil(distance * settings.MAX_SWIPE_STEPS)
+        else:
+            w, h = self.window_size
+            return math.ceil(distance * w * settings.MAX_SWIPE_STEPS / h)
+
+    def app_list(self):
+        """
+        Returns:
+            list of apps by filter
+        """
+        return self.d.app_list()
+
+    def app_info(self, pkg_name):
+        """
+        Get app info
+        Args:
+            pkg_name (str): package name
+        Return example:
+            {
+                "mainActivity": "com.github.uiautomator.MainActivity",
+                "label": "ATX",
+                "versionName": "1.1.7",
+                "versionCode": 1001007,
+                "size":1760809
+            }
+        Raises:
+            UiaError
+        """
+        return self.d.app_info(pkg_name)
+
+    def click_more(self, x, y, sleep=.01, times=3):
+        """
+        连续点击
+        x: 横坐标
+        y: 纵坐标
+        sleep(float): 间隔时间
+        times(int): 点击次数
+        """
+        w, h = self.window_size()
+        x, y = (w * x, h * y) if x < 1 and y < 1 else x, y
+        for i in range(times):
+            self.d.touch.down(x, y)
+            time.sleep(sleep)
+            self.d.touch.up(x, y)
+
     def click(self, **element):
         """
         元素点击
         element:text="Settings" xpath="//*[@text='Settings']"
         :return:
         """
-        selector = self.assert_exist(**element)
+        selector = self.get_element(**element)
         selector.click(),
         logger.info("点击元素:「{}」".format(element))
         return self
@@ -277,17 +423,6 @@ class AndroidDevice(BaseDevice):
 
         logger.info("输入文字「{}」".format(log_text))
 
-    def click_web(self, element, log_text):
-
-        """
-        通过文字,点击web页面中的元素
-        element=u"文化艺术"
-        :return:
-        """
-
-        self.d(description=element).click()
-        logger.info("点击元素:「{}」".format(log_text))
-
     def double_click(self, x, y, time=0.5):
         """
         双击
@@ -327,36 +462,6 @@ class AndroidDevice(BaseDevice):
         self.d(text=element1).drag_to(text=element2, duration=duration)
         logger.info("拖动元素「{}」至元素「{}」处".format(element1, element2))
 
-    def wipe_down_element(self, element):
-        """
-        向下滑动到某个元素
-        :return:
-        """
-        # is_find = False
-        max_count = 5
-        while max_count > 0:
-            if self.find_elements(element):
-                logger.info("向下滑动到:「{}」".format(element))
-            else:
-                self.wipe_down()
-                max_count -= 1
-                logger.info("向下滑动")
-
-    def wipe_up_element(self, element):
-        """
-        向上滑动到某个元素
-        :return:
-        """
-        # is_find = False
-        max_count = 10
-        while max_count > 0:
-            if self.find_elements(element):
-                logger.info("向上滑动到:「{}」".format(element))
-            else:
-                self.wipe_up()
-                max_count -= 1
-                logger.info("向上滑动")
-
     def toast_show(self, text, duration=5):
         """
         页面出现弹窗提示时间，默认时间5s
@@ -366,28 +471,6 @@ class AndroidDevice(BaseDevice):
         """
         self.d.toast.show(text, duration)
         logger.info("展示文字")
-
-    def wait_element_appear(self, element, log_text, timeout=5):
-        """
-        等待某个元素的出现，默认等待时间5s
-        :param element: 元素内容
-        :param log_text:log元素内容
-        :param timeout:超时时间
-        :return:
-        """
-        self.d(text=element).wait(timeout=timeout)
-        logger.info("等待「{}」元素出现".format(log_text))
-
-    def wait_element_gone(self, element, log_text, timeout=2):
-        """
-        等待某个元素的消失，默认等待时间5s
-        :param element: 元素内容
-        :param log_text:log元素内容
-        :param timeout:超时时间
-        :return:
-        """
-        self.d(text=element).wait_gone(timeout=timeout)
-        logger.info("等待「{}」元素消失".format(log_text))
 
     def find_elements(self, element, timeout=5):
         """
@@ -407,33 +490,9 @@ class AndroidDevice(BaseDevice):
                 else:
                     timeout -= 1
         except Exception as e:
-            logger.info("「{}」查找失败!「{}」".format(element, e))
+            logger.error("「{}」查找失败!「{}」".format(element, e))
         finally:
             return is_exist
-
-    def assert_not_exist(self, element):
-        """
-        假设九秒走满 还没有找到这个页面有这个元素 判断这个页面元素不存在
-        wait Settings appear in 3s, same as .wait(3)
-        :param element:
-        :return:
-        """
-        start_time = time.time()
-        self.d(text=element).exists(timeout=10)
-        end_time = time.time()
-        assert (end_time - start_time > 9) == True, "断言「{}」元素不存在,失败了!".format(element)
-        logger.info(f"断言「{element}」元素不存在,成功了!")
-
-    def assert_contain_text(self, localtion, element):
-        """
-        断言页面的某个位置是否含有该文字
-        :param localtion: 直接是x,y 坐标
-        :param element:
-        :return:
-        """
-        element_details = self.d(**localtion).info
-        assert element == element_details["text"], "断言「{}」位置没有「{}」元素失败!".format(localtion, element)
-        logger.info("断言「{}」位置存在「{}」元素成功!".format(localtion, element))
 
     def __repr__(self):
         return f'<AndroidDevice {self.name or self.serial}'

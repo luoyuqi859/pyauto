@@ -11,7 +11,7 @@ import uiautomator2 as u2
 
 from conf import settings
 from uiauto.android.adb import ADB
-from uiauto.android.processing import screenshots_name, processing
+from uiauto.android.plugins.processing import screenshots_name, processing
 from utils.log import logger
 
 LOCATOR_LIST = [

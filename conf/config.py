@@ -19,6 +19,7 @@ ELEMENT_WAIT_TIMEOUT = 5  # 元素默认等待时间
 FORCE_STEP_INTERVAL_BEFORE = 0.2  # 测试操作前强制间隔时间
 FORCE_STEP_INTERVAL_AFTER = 0.2  # 测试操作后强制间隔时间
 WAIT_FOR_DEVICE_TIMEOUT = 70
+MAX_SWIPE_STEPS = 55  # 滑动一屏最多需要的步数，如果把屏幕分成十等份，那么滑动0.1的距离需要5.5步
 
 click_screenshots = True  # 默认点击截图开关
 

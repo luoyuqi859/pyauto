@@ -22,6 +22,10 @@ class BaseError(Exception):
         return repr(self.message)
 
 
+class RootError(BaseError):
+    """"""
+
+
 class FileNotExistError(BaseError):
     """file does not exist."""
 
@@ -31,6 +35,10 @@ class InvalidMatchingMethodError(BaseError):
         This is InvalidMatchingMethodError BaseError
         When an invalid matching method is used in settings.
     """
+
+
+class AdbError(BaseError):
+    """"""
 
 
 class ElementNotFoundError(BaseError):
