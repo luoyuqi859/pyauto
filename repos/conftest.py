@@ -8,6 +8,7 @@
 
 import uiautomator2 as u2
 
+from uiauto.android.adb import ADB
 from uiauto.android.device import AndroidDevice
 from utils.log import logger
 import allure
@@ -35,7 +36,10 @@ def pytest_runtest_makereport(item, call):
 
 @pytest.fixture(scope="session", params=None, autouse=True, ids=None, name=None)
 def d_obj():
-    device = u2.connect()
+
+    serial = ADB().adb.serial
+    device = u2.Device(serial)
+    # device = u2.connect()
     logger.info(device.info)
     logger.info("初始化设备成功")
     return AndroidDevice(device=device)

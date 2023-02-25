@@ -8,5 +8,8 @@
 
 import uiautomator2 as u2
 
-d = u2.connect()
-d(text="飞书").click()
+from uiauto.android.adb import ADB
+
+serial = ADB().adb.serial
+device = u2.Device(serial)
+print(device.info)

@@ -25,10 +25,11 @@
 
 ## 安装教程
 
-* 首先，执行本框架之前，需要搭建好 python、adb环境 python版本:3.9.6
+* 首先，执行本框架之前，需要搭建好 python、python版本:3.9.6
 * 进入libs/uiautomator2目录下，点击install.bat，安装uiautomator2相关依赖
 * 项目根目录下执行 install.bat， 安装框架相关依赖
-* 双击run.bat运行
+* ddd.py 测试文件运行不报错即可代表正常运行
+* 框架运行入口 run.py ，通过pycharm编辑器运行即可
 
 ## 问题
 * 如何对比两个文字的字体大小  333200
