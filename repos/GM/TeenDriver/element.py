@@ -21,3 +21,5 @@ add_or_remove_teen_driver_keys: "xpath" = '//*[@resource-id="com.gm.teenmode:id/
 view_report_card: "xpath" = '//*[@resource-id="com.gm.teenmode:id/list_content"]/android.view.ViewGroup[2]/android.widget.LinearLayout[1]'
 teen_driver_settings: "xpath" = '//*[@resource-id="com.gm.teenmode:id/list_content"]/android.view.ViewGroup[3]/android.widget.LinearLayout[1]'
 change_pin: "xpath" = '//*[@resource-id="com.gm.teenmode:id/list_content"]/android.view.ViewGroup[4]/android.widget.LinearLayout[1]'
+clear_pin_and_teen_driver_keys: "xpath" = '//*[@resource-id="com.gm.teenmode:id/list_content"]/android.view.ViewGroup[5]'
+txt_dialog_message: "resourceId" = "com.gm.teenmode:id/txt_dialog_message"

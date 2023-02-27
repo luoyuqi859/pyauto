@@ -50,7 +50,7 @@ class Swipe:
         assert callable(condition)
         satisfied = condition()
         while not satisfied:
-            self.device.d.swipe(self.fx, self.fy, self.tx, self.ty)
+            self.device.swipe(self.fx, self.fy, self.tx, self.ty)
             time.sleep(0.5)
             satisfied = condition()
 
@@ -94,7 +94,7 @@ class UiaSwipe(Swipe):
         return self.device.d.swipe_points(points, duration)
 
     def until_exists(self, **kwargs):
-        self.until(lambda: self.device.get_element(**kwargs).exists)
+        self.until(lambda: self.device(**kwargs).exists)
 
     def __call__(self, fx=None, fy=None, tx=None, ty=None, duration=0.1, steps=None, **kwargs):
         """
@@ -113,6 +113,6 @@ class UiaSwipe(Swipe):
         steps = steps or self.device.calc_swipe_steps(instance) or int(duration * 200)
         fx, fy = self.device.abs_pos(fx, fy)
         tx, ty = self.device.abs_pos(tx, ty)
-        self.device.d.swipe(fx, fy, tx, ty, steps)
+        self.device.d.swipe(fx=fx, fy=fy, tx=tx, ty=ty, steps=steps)
         logger.success(f'swipe from {(fx, fy)} to {(tx, ty)}')
         return self

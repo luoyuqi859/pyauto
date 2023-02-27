@@ -6,11 +6,7 @@
 @Created: 2023/2/22 16:53
 """
 
-import uiautomator2 as u2
-
-from uiauto.android.adb import ADB
-from uiauto.android.device import AndroidDevice
-from uiauto.android.u2 import connect
+from uiauto.android.device import AndroidDevice, connect
 from utils.log import logger
 import allure
 import pytest
@@ -32,12 +28,11 @@ def pytest_runtest_makereport(item, call):
         # 添加allure报告截图
         if device is not None:
             logger.warning("用例出错,即将截图")
-            allure.attach(device.d.screenshot(format="base64"), "失败截图", allure.attachment_type.PNG)
+            allure.attach(device.screenshot.byte64, "失败截图", allure.attachment_type.PNG)
 
 
 @pytest.fixture(scope="session", params=None, autouse=True, ids=None, name=None)
 def d_obj():
-
     # serial = ADB().adb.serial
     # device = u2.Device(serial)
     d = connect()

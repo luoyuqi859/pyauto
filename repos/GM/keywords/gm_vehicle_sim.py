@@ -107,7 +107,7 @@ class GMVehicleSim:
                 self._tx_queue.task_done()
 
                 length = self._tx_queue.qsize()
-                logger.debug("Tx Queue: " + str(length))
+                # logger.debug("Tx Queue: " + str(length))
 
                 if item:
                     try:
@@ -177,7 +177,7 @@ class GMVehicleSim:
                             self._rx_queue.put(payload)
 
                             length = self._rx_queue.qsize()
-                            logger.debug("Rx Queue: " + str(length))
+                            # logger.debug("Rx Queue: " + str(length))
                     else:
                         time.sleep(0.05)  # not completely lock up system!
                 else:

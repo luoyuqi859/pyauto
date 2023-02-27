@@ -28,7 +28,8 @@ class AdbOperator:
         self.after_connect = True
         self._sdk_version = None
 
-    def location(self):
+    @classmethod
+    def location(cls):
         """获取ADB路径"""
         p = whichcraft.which("adb")
         if p is None:
@@ -499,6 +500,8 @@ class ADB():
     def __init__(self, device_id=None):
         self.adb = AdbOperator(device_id)
 
+
+adb = ADB()
 
 if __name__ == '__main__':
     a = ADB()

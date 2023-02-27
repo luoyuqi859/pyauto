@@ -9,11 +9,9 @@ import math
 import re
 import time
 
-import uiautomator2
-from cached_property import cached_property
-
 from conf import settings
-from uiauto.android.adb import ADB
+import uiautomator2 as u2
+from uiauto.android.adb import ADB, adb
 from uiauto.android.android_keys import AndroidKeys
 from uiauto.android.plugins.accessory import Accessory
 from uiauto.android.plugins.airplane import Airplane
@@ -26,27 +24,82 @@ from uiauto.android.plugins.forward import Forward
 from uiauto.android.plugins.page import AndroidPage
 from uiauto.android.plugins.prop import Prop
 from uiauto.android.plugins.qs import QuickSettings
+from uiauto.android.plugins.rotation import UiaRotation, Rotation
+from uiauto.android.plugins.screenshot import UiaScreenshot
 from uiauto.android.plugins.swipe import UiaSwipe
 from uiauto.android.plugins.wifi import Wifi
+from uiauto.android.u2.element import AndroidElement
+from uiauto.android.u2.selector import Selector
 from utils.errors import ElementNotFoundError
 
 from utils.log import logger
 
 
+def get_device_id():
+    """获取设备id"""
+    return ADB().adb.serial
+
+
+def connect(serial=None) -> u2.Device:
+    serial = serial or get_device_id()
+    d = u2.Device(serial)
+    d.implicitly_wait(settings.ELEMENT_WAIT_TIMEOUT)
+    d.settings['operation_delay'] = (settings.FORCE_STEP_INTERVAL_BEFORE, settings.FORCE_STEP_INTERVAL_AFTER)
+    d.settings['operation_delay_methods'] = ['click', 'swipe', 'drag', 'press']
+    d.jsonrpc.setConfigurator({"waitForIdleTimeout": 100})
+    return d
+
+
 class AndroidDevice(BaseDevice):
 
-    def __init__(self, device: uiautomator2.Device, **kwargs):
+    def __init__(self, device, **kwargs):
         super().__init__(**kwargs)
-        self.d = device
+        self.d: u2.Device = device
         self._adb = None
+
+    def __getattr__(self, item):
+        return self.get(item, None)
+
+    def __call__(self, o=None, **kwargs):
+        if isinstance(o, AndroidElement):
+            o.device = self
+            return o
+        elif isinstance(o, Selector) or isinstance(o, dict):
+            kwargs.update(o)
+            return AndroidElement(device=self, **kwargs)
+        return AndroidElement(device=self, **kwargs)
+
+    @property
+    def name(self):
+        """
+        设备名称
+        :return:
+        """
+        return self.get('name') or self.serial
+
+    @property
+    def serial(self):
+        """
+        序列号
+        """
+        if not self.get('serial'):
+            self['serial'] = adb.adb.serial
+        return self['serial']
 
     @property
     def id(self):
         return self.d.serial
 
-    @cached_property
+    @property
     def adb_fp(self):
-        return ADB(device_id=self.id)
+        """
+        得到AdbDevice对象，以便调用相应的api
+
+        :return:
+        """
+        if not self._adb:
+            self._adb = ADB(device_id=self.id)
+        return self._adb
 
     @property
     def event(self):
@@ -93,8 +146,22 @@ class AndroidDevice(BaseDevice):
         return AndroidPage(device=self.d)
 
     @property
+    def rotation(self):
+        if 'rotation' not in self:
+            self['rotation'] = UiaRotation(self.d)
+        return self.get('rotation')
+
+    @property
     def swipe(self):
         return UiaSwipe(self)
+
+    @property
+    def screenshot(self):
+        """
+        屏幕截图
+        :return:
+        """
+        return UiaScreenshot(self)
 
     @property
     def window_size(self):
@@ -104,7 +171,9 @@ class AndroidDevice(BaseDevice):
         Return:
             return (width, height)
         """
-        return self.d.window_size()
+        info = self.d.http.get('/info').json()
+        w, h = info['display']['width'], info['display']['height']
+        return w, h
 
     @property
     def is_multi_window_mode(self):
@@ -194,7 +263,7 @@ class AndroidDevice(BaseDevice):
         """
         selector = self.get_element(**element)
         selector.click(),
-        logger.info("点击元素:「{}」".format(element))
+        logger.info("click element:「{}」".format(element))
         return self
 
     def press(self, key, meta=0, times=1):
@@ -236,8 +305,8 @@ class AndroidDevice(BaseDevice):
         """
         selector = self.get_element(**element)
         if not selector.exists:
-            raise ElementNotFoundError(f"{element} 不存在")
-        logger.info(f'断言元素存在: {element}, 成功')
+            raise ElementNotFoundError(f"{element} not found")
+        logger.info(f'asser element exists: {element}, successful')
         return selector
 
     def assert_not_exist(self, **element):

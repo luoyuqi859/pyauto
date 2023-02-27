@@ -959,9 +959,6 @@ class _Device(_BaseClient):
             import numpy as np
             nparr = np.fromstring(r.content, np.uint8)
             return cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        elif format == 'base64':
-            buff = io.BytesIO(r.content)
-            return buff.getvalue()
         elif format == 'raw':
             return r.content
         else:
@@ -1036,11 +1033,11 @@ class _Device(_BaseClient):
             before, after = 0, 0
 
         if before:
-            self.logger.debug(f"operation [{operation_name}] pre-delay {before}s")
+            # self.logger.debug(f"operation [{operation_name}] pre-delay {before}s")
             time.sleep(before)
         yield
         if after:
-            self.logger.debug(f"operation [{operation_name}] post-delay {after}s")
+            # self.logger.debug(f"operation [{operation_name}] post-delay {after}s")
             time.sleep(after)
 
     @property

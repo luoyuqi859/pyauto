@@ -44,19 +44,7 @@ LOCATOR_LIST = [
 ]
 
 
-def get_device_id():
-    """获取设备id"""
-    return ADB().adb.serial
 
-
-def connect() -> u2.Device:
-    serial = get_device_id()
-    d = u2.Device(serial)
-    d.implicitly_wait(settings.ELEMENT_WAIT_TIMEOUT)
-    d.settings['operation_delay'] = (settings.FORCE_STEP_INTERVAL_BEFORE, settings.FORCE_STEP_INTERVAL_AFTER)
-    d.settings['operation_delay_methods'] = ['click', 'swipe', 'drag', 'press']
-    d.jsonrpc.setConfigurator({"waitForIdleTimeout": 100})
-    return d
 
 
 class Page(object):

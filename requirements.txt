@@ -1,4 +1,5 @@
 pytest==7.2.1
+scikit-image==0.19.3
 tornado>=4.3
 facebook-wda>=1.0.5
 pytest-rerunfailures==11.1

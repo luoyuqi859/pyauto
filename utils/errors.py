@@ -15,14 +15,21 @@ from utils.log import logger
 class BaseError(Exception):
     """Base class for exceptions in this module."""
 
-    def __init__(self, message=""):
+    def __init__(self, message="", *args, **kwargs):
         self.message = message
+        self.data = kwargs.pop('data', None)
+        if args or kwargs:
+            self.message = message.format(*args, **kwargs)
 
     def __repr__(self):
         return repr(self.message)
 
 
 class RootError(BaseError):
+    """"""
+
+
+class TestFailedError(BaseError):
     """"""
 
 
