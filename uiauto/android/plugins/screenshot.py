@@ -64,7 +64,7 @@ class ScreenshotBase:
         w, h = self.device.window_size
         cw, ch = max(w, h) / 20, min(w, h) / 10
         font = ImageFont.truetype(size=40, font=r'c:\windows\fonts\msyh.ttc')
-        if self.device.rotation.status in [Rotation.left, Rotation.right]:
+        if w > h and self.device.rotation.status not in [Rotation.left, Rotation.right]:
             for i in range(1, 21):
                 color = colors[i % 2]
                 # cv2.line(self._image, (400, 380), (200, 150), (25, 100, 255))
@@ -74,7 +74,7 @@ class ScreenshotBase:
                 color = colors[j % 2]
                 draw.line(xy=(0, ch * j, w, ch * j), fill=color, width=1)
                 draw.text(xy=(cw * 2, ch * j), text=str(j / 10), fill=color, font=font)
-        else:
+        elif w > h and self.device.rotation.status in [Rotation.left, Rotation.right]:
             for i in range(1, 11):
                 color = colors[i % 2]
                 draw.line(xy=(ch * i, 0, ch * i, h), fill=color, width=1)
@@ -84,6 +84,47 @@ class ScreenshotBase:
                 color = colors[j % 2]
                 draw.line(xy=(0, cw * j, w, cw * j), fill=color, width=1)
                 draw.text(xy=(ch, cw * j), text=str(j / 20), fill=color, font=font)
+        elif w < h and self.device.rotation.status not in [Rotation.left, Rotation.right]:
+            for i in range(1, 11):
+                color = colors[i % 2]
+                draw.line(xy=(ch * i, 0, ch * i, h), fill=color, width=1)
+
+                draw.text(xy=(ch * i, cw * 2), text=str(i / 10), fill=color, font=font)
+            for j in range(1, 21):
+                color = colors[j % 2]
+                draw.line(xy=(0, cw * j, w, cw * j), fill=color, width=1)
+                draw.text(xy=(ch, cw * j), text=str(j / 20), fill=color, font=font)
+        else:
+            for i in range(1, 21):
+                color = colors[i % 2]
+                # cv2.line(self._image, (400, 380), (200, 150), (25, 100, 255))
+                draw.line(xy=(cw * i, 0, cw * i, h), fill=color, width=1)
+                draw.text(xy=(cw * i, ch), text=str(i / 20), fill=color, font=font)
+            for j in range(1, 11):
+                color = colors[j % 2]
+                draw.line(xy=(0, ch * j, w, ch * j), fill=color, width=1)
+                draw.text(xy=(cw * 2, ch * j), text=str(j / 10), fill=color, font=font)
+
+        # if self.device.rotation.status in [Rotation.left, Rotation.right]:
+        #     for i in range(1, 21):
+        #         color = colors[i % 2]
+        #         # cv2.line(self._image, (400, 380), (200, 150), (25, 100, 255))
+        #         draw.line(xy=(cw * i, 0, cw * i, h), fill=color, width=1)
+        #         draw.text(xy=(cw * i, ch), text=str(i / 20), fill=color, font=font)
+        #     for j in range(1, 11):
+        #         color = colors[j % 2]
+        #         draw.line(xy=(0, ch * j, w, ch * j), fill=color, width=1)
+        #         draw.text(xy=(cw * 2, ch * j), text=str(j / 10), fill=color, font=font)
+        # else:
+        #     for i in range(1, 11):
+        #         color = colors[i % 2]
+        #         draw.line(xy=(ch * i, 0, ch * i, h), fill=color, width=1)
+        #
+        #         draw.text(xy=(ch * i, cw * 2), text=str(i / 10), fill=color, font=font)
+        #     for j in range(1, 21):
+        #         color = colors[j % 2]
+        #         draw.line(xy=(0, cw * j, w, cw * j), fill=color, width=1)
+        #         draw.text(xy=(ch, cw * j), text=str(j / 20), fill=color, font=font)
         if not os.path.isabs(filename):
             filename = os.path.join(os.getcwd(), filename)
         img.save(filename)
@@ -104,8 +145,6 @@ class UiaScreenshot(ScreenshotBase):
     def __call__(self, fmt='pillow'):
         if fmt == 'pillow':
             return self.pillow
-        elif fmt == 'opencv':
-            return self.opecv
         elif fmt == 'base64':
             return self.byte64
         elif fmt == 'raw':
@@ -120,14 +159,6 @@ class UiaScreenshot(ScreenshotBase):
     @property
     def byte64(self):
         return pillow2base64(self.pillow)
-
-    @property
-    def opecv(self):
-        import cv2
-        import numpy as np
-        r = self.device.uia.request("get", '/screenshot/0')
-        nparr = np.fromstring(r.content, np.uint8)
-        return cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     def save(self, filename):
         """

@@ -13,6 +13,7 @@ from uiautomator2 import UiObject
 from conf import settings
 from uiauto.android.parse import Bounds
 from uiauto.android.u2.selector import Selector
+from utils import image
 from utils.dict import Dict
 from utils.errors import ElementNotFoundError, TestFailedError
 from utils.log import logger
@@ -107,8 +108,17 @@ class AndroidElement:
         if isinstance(bounds, str):
             return Bounds.parse(bounds)
         elif isinstance(bounds, dict):
-            return Bounds(bounds.get('left'), bounds.get('top'), bounds.get('right'), bounds.get('bottom'))
+            return [bounds.get('left'), bounds.get('top'), bounds.get('right'), bounds.get('bottom')]
         return bounds
+
+    def child(self, **kwargs):
+        """
+        获取子元素
+
+        :param kwargs:
+        :return:
+        """
+        return self.device(selector=self.selector.clone().child(**kwargs))
 
     @property
     def position(self):
@@ -529,3 +539,36 @@ class AndroidElement:
         if not result:
             raise TestFailedError(f'Assert info of {self.name}, expected: {expected}, actual: {actual}')
         logger.info(f'Element info of "{self.name}" is as expected: {expected}')
+
+    def screenshot(self, filename=None, fmt='pillow'):
+        """
+        元素截图
+
+        :param filename: 保存的文件名称
+        :param fmt: 输出格式：pillow/opencv/base64
+        :return:
+        """
+        # self.display()
+        img = self.device.screenshot(fmt='pillow')  # TODO
+        ele_img = img.crop(self.bounds)
+        if filename:
+            ele_img.save(filename)
+        if fmt == 'pillow':
+            return ele_img
+        elif fmt == 'base64':
+            return image.pillow2base64(ele_img)
+        return ele_img
+
+    def __getitem__(self, index):
+        if isinstance(index, str):
+            raise IndexError("Index is not supported when UiObject returned by child_by_xxx")
+        selector = self.selector.clone()
+        if index < 0:
+            index = self.count
+        selector.update_instance(index)
+        return AndroidElement(device=self.device, selector=selector, name=self._name)
+
+    def __iter__(self):
+        length = self.count
+        for i in range(length):
+            yield self[i + 1]

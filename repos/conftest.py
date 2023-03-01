@@ -33,10 +33,9 @@ def pytest_runtest_makereport(item, call):
 
 @pytest.fixture(scope="session", params=None, autouse=True, ids=None, name=None)
 def d_obj():
-    # serial = ADB().adb.serial
-    # device = u2.Device(serial)
-    d = connect()
-    # device = u2.connect()
-    logger.info(d.info)
+    u2 = connect()
+    logger.info(u2.info)
+    d = AndroidDevice(device=u2)
+    # d.minicap.install_minicap()
     logger.info("初始化设备成功")
-    return AndroidDevice(device=d)
+    return d

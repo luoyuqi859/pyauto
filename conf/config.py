@@ -10,9 +10,14 @@ from utils.path_fun import Path
 from utils.time_fun import timeoperator
 
 root_path = Path(__file__).parent.parent
+uiauto_path = root_path / "uiauto"
 allure_bat = root_path / 'libs' / 'allure' / "bin" / "allure"
 current_time = timeoperator.strftime_now("%Y-%m-%d-%H-%M-%S")
 report_path = root_path / "report" / config.project_name / current_time
+ocr_cls = root_path / 'libs' / 'ocr' / 'cls'
+ocr_det = root_path / 'libs' / 'ocr' / 'det'
+ocr_rec = root_path / 'libs' / 'ocr' / 'rec'
+minicap_path = root_path / 'libs' / 'minicap'
 
 # u2
 ELEMENT_WAIT_TIMEOUT = 5  # 元素默认等待时间
@@ -23,4 +28,3 @@ MAX_SWIPE_STEPS = 55  # 滑动一屏最多需要的步数，如果把屏幕分�
 LONG_CLICK_DURATION = 1  # 长按时长
 
 click_screenshots = True  # 默认点击截图开关
-

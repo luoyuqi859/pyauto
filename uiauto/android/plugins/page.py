@@ -10,6 +10,7 @@ from xml.sax import parseString
 
 from uiauto.android.parse import Handler
 from uiauto.android.parse import Bounds, AndroidPageParser
+from uiauto.android.u2.element import AndroidElement
 from utils.check import Check
 from utils.errors import RootError, ElementNotFoundError
 
@@ -24,16 +25,19 @@ class AndroidPage:
 
     @property
     def source(self):
-        source = self._source or self.device.dump_hierarchy()
+        source = self._source or self.device.d.dump_hierarchy()
         if not source:
             raise RootError(f'无法获取设备页面内容，请root设备或者恢复出厂设置，如果还不能解决，可考虑刷机！')
         return source
 
     @property
     def display_bounds(self):
+        # 没用
         if not self.__display_bounds:
             try:
-                status_bar_bounds = self.device(resourceId='com.android.systemui:id/status_bar', timeout=0).bounds
+                f = "com.android.systemui:id/gm_car_status_bar"
+                d = "com.android.systemui:id/status_bar"
+                status_bar_bounds = self.device(resourceId=f, timeout=0).bounds
             except ElementNotFoundError:
                 status_bar_bounds = Bounds(0, 0, 0, 0)
             try:
@@ -45,10 +49,20 @@ class AndroidPage:
 
         return self.__display_bounds
 
+    def select(self, **kwargs):
+        attr_expression = ''.join(["[@" + k + '="' + v + '"]' for k, v in kwargs.items()])
+        xpath = f'//*{attr_expression}'
+        parser = AndroidPageParser(self.source)
+        node = parser.one(xpath)
+        if node:
+            ele = AndroidElement(device=self.device)
+            ele.info.update(**node)
+            return ele
+
     def parse_page(self):
         pass
 
-    def find(self, **kwargs):
+    def find(self, **kwargs) -> 'AndroidElement':
         def _find_node(node):
             if Check(node).test(**kwargs):
                 node._adb = self.device
@@ -62,6 +76,21 @@ class AndroidPage:
         except:
             pass
         return result.get('result')
+
+    def parse(self, x, y):
+        return self.find_element(x, y)
+
+    def find_element(self, x, y):
+        """
+        解析获取位于 (x, y) 坐标的元素
+        :param x:
+        :param y:
+        :return: AndroidElement
+        """
+        node = self.__parse_pos(x, y)
+        ele = AndroidElement(device=self.device)
+        ele.info.update(**node)
+        return ele
 
     def parse_selector(self, x, y):
         # 解析到位于该坐标的元素之后，尝试得到选择器

@@ -8,15 +8,18 @@
 import os
 import re
 import subprocess
+import sys
 import threading
 import time
-from typing import List
+from typing import List, Union
 
 import whichcraft
 
 from utils.allure_fun import attach_text
+from utils.errors import AdbError
 from utils.log import logger
 from utils.path_fun import Path
+from utils.s import Str
 from utils.time_fun import timeoperator
 
 
@@ -238,7 +241,7 @@ class AdbOperator:
         """
         # if not save_path:
         #     save_path = os.path.join(REPORT_PATH, f"bugreport{timeoperator.now4}.zip")
-        result = self.run_adb_cmd('bugreport', save_path, timeout=180)
+        result = self.run_adb_cmd('bugreport', save_path)
         attach_text(save_path, 'bugreport存放路径')
         return result
 
@@ -413,7 +416,7 @@ class AdbOperator:
         """
         从手机中拉取文件
         """
-        result = self.run_adb_cmd('pull', src_path, dst_path, timeout=180)
+        result = self.run_adb_cmd('pull', src_path, dst_path)
         if result and 'failed to copy' in result:
             logger.error("failed to pull file:" + src_path)
         return result
@@ -491,6 +494,114 @@ class AdbOperator:
                                     'proc_name': cmd, 'status': items[-2]})
         return result_list
 
+    def push(self, src, dest, reboot=False):
+        command = f'push "{src}" "{dest}"'
+        result = self.run_adb_cmd(command)
+        if reboot:
+            self.reboot()
+        return result
+
+    def pull(self, src, dest):
+        command = f'pull "{src}" "{dest}"'
+        result = self.run_adb_cmd(command, self.serial)
+        return result
+
+    def path(self, path):
+        return AdbAndroidPath(path, self)
+
+    def shell(self, command):
+        return self.run_shell_cmd(command)
+
+
+class AdbAndroidPath(Str):
+    def __init__(self, o, adb):
+        super().__init__()
+        self.adb = adb
+
+    @property
+    def size(self):
+        return self.adb.shell(f'du -ha {self}').split()[0]
+
+    @property
+    def is_dir(self):
+        output = self.adb.shell(f'ls -al {self}')
+        return output.startswith('total')
+
+    @property
+    def is_file(self):
+        return not self.is_dir
+
+    @property
+    def exists(self):
+        try:
+            output = self.adb.shell(f'ls {self}')
+            if 'No such file or directory' in output:
+                return False
+            return True
+        except AdbError:
+            return False
+
+    def cat(self):
+        return self.adb.shell(f'cat {self}')
+
+    def ls(self):
+        try:
+            for f in self.adb.shell(f'ls {self}').splitlines():
+                yield self.__class__(self / f, self.adb)
+        except AdbError:
+            return []
+
+    def mkdir(self, path=None):
+        if not path:
+            try:
+                self.adb.shell(f'mkdir {self}')
+                return True
+            except Exception as e:
+                if 'File exists' in str(e):
+                    return
+                e.__class__ = AdbError
+                raise e
+        else:
+            return self.__class__(self / path, self.adb).mkdir()
+
+    def chmod(self, auth='777'):
+        self.adb.shell(f'chmod {auth} -R {self}')
+
+    def rm(self, path=None, opts=None):
+        """移除目录或子目录"""
+        if not path:
+            if not opts:
+                opts = ''
+            try:
+                self.adb.shell(f'rm {opts} {self}')
+                return True
+            except Exception as e:
+                if 'No such file or directory' in str(e):
+                    return
+                e.__class__ = AdbError
+                raise e
+        else:
+            return AdbAndroidPath(self / path, self.adb).rm(opts=opts)
+
+    def clear(self, raise_err=False):
+        try:
+            self.adb.shell(f'rm -r {self}/*')
+        except AdbError:
+            if raise_err:
+                raise
+
+    def pull(self, local_path='.'):
+        self.adb.pull(self, local_path)
+
+    def delete_files(self, file_pattern='*'):
+        self.adb.shell(f'rm -r {self}/{file_pattern}')
+
+    def __truediv__(self, other):
+        if self[-1] == '/':
+            return self.__class__(self + other, self.adb)
+        else:
+            return self.__class__(self + '/' + other, self.adb)
+
 
 class ADB():
     """
@@ -505,6 +616,7 @@ adb = ADB()
 
 if __name__ == '__main__':
     a = ADB()
+    print(a.adb.path("/data/local/tmp/minicap").exists)
     print(Path(__file__).parent / 'sdk' / 'adb.exe')
     print(a.adb.location())
     print(a.adb.serial)

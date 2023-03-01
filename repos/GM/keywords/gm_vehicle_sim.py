@@ -6,7 +6,6 @@ import traceback
 from queue import Queue
 
 from utils.log import logger
-from loguru import logger
 
 
 class GMVehicleSim:
@@ -34,7 +33,7 @@ class GMVehicleSim:
         return self._connection
 
     def open(self):
-        logger.info('connecting with: ' + str(self._server_address))
+        # logger.info('connecting with: ' + str(self._server_address))
         self._tx_queue = Queue()
         self._rx_queue = Queue()
 
@@ -172,7 +171,11 @@ class GMVehicleSim:
                         data = rx_buffer_temp[start_index:end_index + 1]
                         rx_buffer = rx_buffer[:rx_buffer_temp.find(start)] + rx_buffer[rx_buffer_temp.find(end) + 1:]
 
-                        payload = json.loads(data)
+                        try:
+                            payload = json.loads(data)
+                        except:
+                            continue  # wait for more data
+                        # payload = json.loads(data)
                         if self._rx_queue is not None:
                             self._rx_queue.put(payload)
 
@@ -213,10 +216,12 @@ class GMSignal():
         if isinstance(Signal, dict):
             for i in Signal:
                 entry = {'Type': Type, 'Mode': Mode, 'Name': i, 'Value': str(Signal[i])}
+                logger.info(f"will send Signal: {i} , value: {str(Signal[i])}")
                 payload_Tx.append(entry)
         # entry = can.Message(arbitration_id=0x4C1, data=[0x01, 0x02, 0x03, 0x04, 0x05, 0x06], dlc=0x8, extended_id=False)
         else:
             entry = {'Type': Type, 'Mode': Mode, 'Name': Signal, 'Value': str(Value)}
+            logger.info(f"will send Signal: {Signal} , value: {str(Value)}")
             payload_Tx.append(entry)
         _gmVehicleSim.open()
 

@@ -409,7 +409,7 @@ class Initer():
 if __name__ == "__main__":
     import adbutils
 
-    serial = None
+    serial = "174d37c1"
     device = adbutils.adb.device(serial)
     init = Initer(device, loglevel=logging.DEBUG)
-    print(init.check_install())
+    print(init.uninstall())
