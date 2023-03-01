@@ -14,6 +14,7 @@ from conf import settings
 import uiautomator2 as u2
 from uiauto.android.adb import ADB, adb
 from uiauto.android.android_keys import AndroidKeys
+from uiauto.android.parse import Bounds
 from uiauto.android.plugins.accessory import Accessory
 from uiauto.android.plugins.airplane import Airplane
 from uiauto.android.plugins.app import App
@@ -23,7 +24,7 @@ from uiauto.android.plugins.bt import Bluetooth
 from uiauto.android.plugins.event import Event
 from uiauto.android.plugins.forward import Forward
 from uiauto.android.plugins.minicap import Minicap
-# from uiauto.android.plugins.ocr import Ocr
+from uiauto.android.plugins.ocr import Ocr
 from uiauto.android.plugins.page import AndroidPage
 from uiauto.android.plugins.prop import Prop
 from uiauto.android.plugins.qs import QuickSettings
@@ -116,11 +117,11 @@ class AndroidDevice(BaseDevice):
     def id(self):
         return self.d.serial
 
-    # @property
-    # def ocr(self):
-    #     if not self._ocr:
-    #         self._ocr = Ocr(self)
-    #     return self._ocr
+    @property
+    def ocr(self):
+        if not self._ocr:
+            self._ocr = Ocr(self)
+        return self._ocr
 
     @property
     def adb_fp(self):
@@ -219,6 +220,24 @@ class AndroidDevice(BaseDevice):
         _list = p.findall(source)
         return len(set(_list)) > 2
 
+    @property
+    def display_bounds(self):
+        if not self.__display_bounds:
+            w, h = self.window_size
+            try:
+                f = "com.android.systemui:id/gm_car_status_bar"
+                d = "com.android.systemui:id/status_bar"
+                status_bar_bounds = self(id=f, timeout=0).bounds
+            except ElementNotFoundError:
+                status_bar_bounds = Bounds(0, 0, 0, 0)
+            try:
+                nav_bar_bounds = self(id='com.android.systemui:id/navigation_bar_frame', timeout=0).bounds
+            except ElementNotFoundError:
+                nav_bar_bounds = Bounds(0, h, 0, 0)
+            self.__display_bounds = Bounds(0, status_bar_bounds.bottom, w, nav_bar_bounds.top)
+
+        return self.__display_bounds
+
     def abs_pos(self, x, y):
         w, h = self.window_size
         if x is not None:
@@ -287,15 +306,41 @@ class AndroidDevice(BaseDevice):
             time.sleep(sleep)
             self.d.touch.up(x, y)
 
-    def click(self, **element):
+    def click(self, *args, **kwargs):
         """
         元素点击
         element:text="Settings" xpath="//*[@text='Settings']"
         :return:
         """
-        selector = self.get_element(**element)
-        selector.click(),
-        logger.success("click element:「{}」".format(element))
+
+        def _click_process(*args, **kwargs):
+            if len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], (int, float)):
+                x, y = self.abs_pos(args[0], args[1])
+                self.d.click(x, y)
+                logger.success(f'Click {ele_name or f"position: {x}, {y}"}')
+            elif len(args) == 1 and isinstance(args[0], str):
+                try:
+                    self(text=args[0]).click()
+                except ElementNotFoundError:
+                    self(content=args[0]).click()
+
+            else:
+                selectors = [*args]
+                if kwargs:
+                    selectors.append(kwargs)
+                for selector in selectors:
+                    selector = self.get_element(**selector)
+                    selector.click()
+                logger.success("click element:「{}」".format(kwargs))
+
+        ele_name = kwargs.get('name', None)
+        times = kwargs.get('times', None)
+        if times:
+            for i in range(times):
+                _click_process(*args, **kwargs)
+        else:
+            _click_process(*args, **kwargs)
+
         return self
 
     def press(self, key, meta=0, times=1):

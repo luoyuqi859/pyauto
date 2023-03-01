@@ -32,7 +32,6 @@ class AndroidPage:
 
     @property
     def display_bounds(self):
-        # 没用
         if not self.__display_bounds:
             try:
                 f = "com.android.systemui:id/gm_car_status_bar"

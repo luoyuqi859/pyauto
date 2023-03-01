@@ -44,12 +44,24 @@ class InvalidMatchingMethodError(BaseError):
     """
 
 
+class UiaError(BaseError):
+    """"""
+
+
 class AdbError(BaseError):
+    """"""
+
+
+class WatcherNotRegisteredError(UiaError):
     """"""
 
 
 class ElementNotFoundError(BaseError):
     """element not found"""
+
+
+class TestError(BaseError):
+    """test errors"""
 
 
 @contextmanager

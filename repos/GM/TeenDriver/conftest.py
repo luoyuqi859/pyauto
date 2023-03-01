@@ -18,6 +18,7 @@ def teen_driver_start(d_obj: AndroidDevice):
     d_obj.press("home")
     with allure.step('重置GMVehicleSimulator已发送命令'):
         GMS.sendSignal(Signal='TnDrvPINStrd', Value=0, Type='Signal', Mode='HS')
+        GMS.sendSignal(Signal='TeenDrvReq', Value=0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='TeenDrvRsp', Value=0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='TDAP_TeenDrvrActvAuth', Value=0, Type='Signal', Mode='HS')
     with allure.step('设置挡位到PARK并设置速度为0.0'):

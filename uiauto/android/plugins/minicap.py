@@ -23,7 +23,9 @@ class Minicap:
         sdk = self.device.adb_fp.adb.sdk_version
         minicap = settings.minicap_path / f"{abi}" / "bin" / "minicap"
         minicap_so = settings.minicap_path / f"{abi}" / "lib" / f"android-{sdk}" / "minicap.so"
+        minitouch = settings.minitouch_path / f"{abi}" / "bin" / "minitouch"
         self.device.adb_fp.adb.push(minicap, '/data/local/tmp')
+        self.device.adb_fp.adb.push(minitouch, '/data/local/tmp')
         if os.path.exists(minicap_so):
             self.device.adb_fp.adb.push(minicap_so, '/data/local/tmp')
         self.device.adb_fp.adb.path('/data/local/tmp/minicap').chmod(775)

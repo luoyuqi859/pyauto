@@ -36,6 +36,6 @@ def d_obj():
     u2 = connect()
     logger.info(u2.info)
     d = AndroidDevice(device=u2)
-    # d.minicap.install_minicap()
+    d.minicap.install_minicap()
     logger.info("初始化设备成功")
     return d

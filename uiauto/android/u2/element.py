@@ -5,17 +5,22 @@
 @File: element
 @Created: 2023/2/27 9:44
 """
+import os
+import time
 from functools import wraps
 
 import requests
+from PIL.Image import Image
+from PIL import Image
 from uiautomator2 import UiObject
 
 from conf import settings
 from uiauto.android.parse import Bounds
+from uiauto.android.plugins.watch import Watcher
 from uiauto.android.u2.selector import Selector
 from utils import image
 from utils.dict import Dict
-from utils.errors import ElementNotFoundError, TestFailedError
+from utils.errors import ElementNotFoundError, TestFailedError, TestError, AdbError
 from utils.log import logger
 
 
@@ -108,17 +113,8 @@ class AndroidElement:
         if isinstance(bounds, str):
             return Bounds.parse(bounds)
         elif isinstance(bounds, dict):
-            return [bounds.get('left'), bounds.get('top'), bounds.get('right'), bounds.get('bottom')]
+            return Bounds(bounds.get('left'), bounds.get('top'), bounds.get('right'), bounds.get('bottom'))
         return bounds
-
-    def child(self, **kwargs):
-        """
-        获取子元素
-
-        :param kwargs:
-        :return:
-        """
-        return self.device(selector=self.selector.clone().child(**kwargs))
 
     @property
     def position(self):
@@ -365,6 +361,189 @@ class AndroidElement:
         pos = self.offset_pos(x=x, y=y, ox=ox, oy=oy, align=align)
         self.device.click(*pos)
 
+    def scroll(self):
+        if self.__scroll:
+            self.device(scrollable=True).scroll_to(**self.selector, vertical=self.__scroll == 'v')
+            self.update_info()
+
+    def scroll_to(self, vertical=True, ele_name=None, **kwargs):
+        assert self.selector
+        s = Selector(**kwargs)
+        r = self.u2obj.jsonrpc.scrollTo(self.selector, s, vertical)
+        if not r:
+            raise ElementNotFoundError(ele_name or s)
+        logger.info(f'Scroll {self.name} to {ele_name or s}')
+
+    def scroll_to_text(self, text, **kwargs):
+        self.scroll_to(text=text, **kwargs)
+
+    def check_info(self, **conditions):
+        """
+        检查元素属性信息
+
+        :param conditions: 属性期望值，如 checked=True, enabled=False 可能希望复选框默认选中且不可取消
+        :return: True/False
+        """
+        result = True
+        for k, v in conditions.items():
+            actual = getattr(self, k)
+            result = result and actual == v
+            if not result:
+                break
+        return result
+
+    def update_info(self):
+        """
+        更新元素信息
+
+        :return:
+        """
+        if self.selector:
+            self._info = self.u2obj.jsonrpc.objInfo(self.selector)
+
+    def display(self):
+        """
+        确保元素完全可见，如果元素被系统状态栏或者导航栏部分挡住，会微微滑动使元素完全可见
+
+        :return:
+        """
+        try:
+            self.scroll()
+        except ElementNotFoundError:
+            pass
+        self.update_info()
+        l, t, r, b = self.bounds.unpack()
+        x, y = None, None
+        if b >= self.device.display_bounds.bottom:
+            x, y = self.swipe_up()
+        elif 0 < t < self.device.display_bounds.top:
+            x, y = self.swipe_down()
+        elif 0 < l < self.device.display_bounds.left:
+            x, y = self.swipe_right()
+        elif r >= self.device.display_bounds.right:
+            x, y = self.swipe_left()
+        if not self.selector and x is not None and y is not None:
+            self._info = self.device.page.parse(x, y).info
+        else:
+            self.update_info()
+
+    def display_top(self):
+        """
+        使元素显示在屏幕上半区域 0.2 ~ 0.5，注意与display不同
+
+        :return:
+        """
+        try:
+            self.scroll()
+        except ElementNotFoundError:
+            pass
+        self.update_info()
+        l, t, r, b = self.bounds.unpack()
+        if b / self.device.height >= 0.5:
+            self.swipe_up()
+            return
+        elif t / self.device.height <= 0.2:
+            self.device.swipe()  # TODO
+
+    def display_bottom(self):
+        """
+        使元素显示在屏幕下半区域 0.5 ~ 0.8，注意与display不同
+
+        :return:
+        """
+
+    def watch(self, name):
+        """
+        监听当前元素，如果出现自动执行点击操作，用于处理意外弹框
+
+        :param name:
+        :return:
+        """
+        watcher = Watcher(self.device, name)
+        watcher.when_exists(self).click(self)
+
+    def display_top(self):
+        """
+        使元素显示在屏幕上半区域 0.2 ~ 0.5，注意与display不同
+
+        :return:
+        """
+        try:
+            self.scroll()
+        except ElementNotFoundError:
+            pass
+        self.update_info()
+        l, t, r, b = self.bounds.unpack()
+        if b / self.device.height >= 0.5:
+            self.swipe_up()
+            return
+        elif t / self.device.height <= 0.2:
+            self.device.swipe()  # TODO
+
+    def screenshot(self, filename=None, fmt='pillow'):
+        """
+        元素截图
+
+        :param filename: 保存的文件名称
+        :param fmt: 输出格式：pillow/opencv/base64
+        :return:
+        """
+        self.display()
+        img = self.device.screenshot(fmt='pillow')  # TODO
+        l, t, r, b = self.bounds.unpack()
+        ele_img = img.crop((l, t, r, b))
+        if filename:
+            ele_img.save(filename)
+        if fmt == 'pillow':
+            return ele_img
+        elif fmt == 'base64':
+            return image.pillow2base64(ele_img)
+        return ele_img
+
+    def save_image(self, name):
+        """
+        保存图片
+
+        :param name:
+        :return:
+        """
+        self.display()
+        time.sleep(0.5)
+        img = self.device.screenshot.pillow
+        l, t, r, b = self.bounds.unpack()
+        ele_img = img.crop((l, t, r, b))
+        ele_img.save(name)
+
+    def offset(self, **kwargs):
+        """
+        根据偏移量解析并获取页面元素
+
+        用法：
+
+            1. d(text='Switch').offset(x=0.9, ele_name='{} icon').click()
+            表示找到text显示为“Switch”元素后，将其x坐标替换为0.9，根据新得到的坐标找到目标元素并点击，
+            新找到的元素命名为ele_name （支持格式化），这里会显示为 Switch icon
+
+        :param kwargs: 支持的参数同 offset_pos, 额外支持 ele_name
+        :return:
+        """
+        if not kwargs:
+            return self
+        kwargs['relative'] = False
+        self.scroll()
+        time.sleep(1)
+        x, y = self.device(selector=self.selector).offset_pos(**kwargs)
+        ele = self.device.page.parse(x, y)
+        if not ele:
+            ele = AndroidElement(device=self.device)
+        ele.device = self.device
+        ele._beacon = self
+        ele_name = kwargs.pop('ele_name', None)
+        if ele_name:
+            ele_name = ele_name.format(self._name or self.text or self.content_desc)
+        ele._name = ele_name or ele.text or ele.content_desc or self.name
+        return ele
+
     def offset_pos(self, **kwargs):
         """
         根据偏移量得到新的坐标值，一般来配合页面解析来处理不容易定位的元素
@@ -411,89 +590,120 @@ class AndroidElement:
         relative = kwargs.pop('relative', False)
         return self.device.rel_pos(x, y) if relative else self.device.abs_pos(x, y)
 
-    def check_info(self, **conditions):
+    def from_parent(self, **kwargs):
         """
-        检查元素属性信息
+        用于获取当前元素的兄弟节点元素
 
-        :param conditions: 属性期望值，如 checked=True, enabled=False 可能希望复选框默认选中且不可取消
-        :return: True/False
-        """
-        result = True
-        for k, v in conditions.items():
-            actual = getattr(self, k)
-            result = result and actual == v
-            if not result:
-                break
-        return result
-
-    def update_info(self):
-        """
-        更新元素信息
-
+        :param kwargs: 定位字典
         :return:
         """
-        if self.selector:
-            self._info = self.u2obj.jsonrpc.objInfo(self.selector)
+        child_id = self.u2obj.jsonrpc.getFromParent(self.selector, Selector(**kwargs))
+        obj_info = self.u2obj.jsonrpc.objInfo(child_id)
+        return AndroidElement(info=obj_info, device=self.device)
 
-    def scroll(self):
-        if self.__scroll:
-            self.device(scrollable=True).scroll_to(**self.selector, vertical=self.__scroll == 'v')
-            self.update_info()
-
-    def scroll_to(self, vertical=True, ele_name=None, **kwargs):
-        assert self.selector
-        s = Selector(**kwargs)
-        r = self.u2obj.jsonrpc.scrollTo(self.selector, s, vertical)
-        if not r:
-            raise ElementNotFoundError(ele_name or s)
-        logger.info(f'Scroll {self.name} to {ele_name or s}')
-
-    def scroll_to_text(self, text, **kwargs):
-        self.scroll_to(text=text, **kwargs)
-
-    def display(self):
+    def sibling(self, **kwargs):
         """
-        确保元素完全可见，如果元素被系统状态栏或者导航栏部分挡住，会微微滑动使元素完全可见
+        与from_parent本质一样
 
+        :param kwargs:
         :return:
         """
-        try:
-            self.scroll()
-        except ElementNotFoundError:
-            pass
-        self.update_info()
-        l, t, r, b = self.bounds.unpack()
-        x, y = None, None
-        if b >= self.device.display_bounds.bottom:
-            x, y = self.swipe_up()
-        elif 0 < t < self.device.display_bounds.top:
-            x, y = self.swipe_down()
-        elif 0 < l < self.device.display_bounds.left:
-            x, y = self.swipe_right()
-        elif r >= self.device.display_bounds.right:
-            x, y = self.swipe_left()
-        if not self.selector and x is not None and y is not None:
-            self._info = self.device.page.parse(x, y).info
+        return AndroidElement(selector=self.selector.clone().sibling(**kwargs), device=self.device)
+
+    def child_by_text(self, text, **kwargs):
+        """
+        获取text属性为给定值的子元素
+
+        :param text:
+        :param kwargs:
+        :return:
+        """
+        if "allow_scroll_search" in kwargs:
+            allow_scroll_search = kwargs.pop("allow_scroll_search")
+            name = self.u2obj.jsonrpc.childByText(self.selector, Selector(**kwargs), text, allow_scroll_search)
         else:
-            self.update_info()
+            name = self.u2obj.jsonrpc.childByText(self.selector, Selector(**kwargs), text)
+        return AndroidElement(name, device=self.device)
 
-    def display_top(self):
+    def child_by_description(self, txt, **kwargs):
+        if "allow_scroll_search" in kwargs:
+            allow_scroll_search = kwargs.pop("allow_scroll_search")
+            name = self.u2obj.jsonrpc.childByDescription(self.selector,
+                                                         Selector(**kwargs), txt,
+                                                         allow_scroll_search)
+        else:
+            name = self.u2obj.jsonrpc.childByDescription(self.selector,
+                                                         Selector(**kwargs), txt)
+        return AndroidElement(name, device=self.device)  # TODO  原生支持以字符串作为selector，有矛盾需要处理
+
+    def child_by_instance(self, inst, **kwargs):
+        # need test
+        ele_name = kwargs.pop('ele_name', None)
+        _id = self.u2obj.jsonrpc.childByInstance(self.selector, Selector(**kwargs), inst)
+        info = self.u2obj.jsonrpc.objInfo(_id)
+        return AndroidElement(device=self.device, info=info, name=ele_name)
+
+    def child(self, **kwargs):
         """
-        使元素显示在屏幕上半区域 0.2 ~ 0.5，注意与display不同
+        获取子元素
 
+        :param kwargs:
         :return:
         """
-        try:
-            self.scroll()
-        except ElementNotFoundError:
-            pass
-        self.update_info()
-        l, t, r, b = self.bounds.unpack()
-        if b / self.device.height >= 0.5:
-            self.swipe_up()
-            return
-        elif t / self.device.height <= 0.2:
-            self.device.swipe()  # TODO
+        return self.device(selector=self.selector.clone().child(**kwargs))
+
+    def pinch_in(self, percent=100, steps=50):
+        """
+        缩小手势
+
+        :param percent:
+        :param steps:
+        :return:
+        """
+        if self._info:
+            _dict = {}
+            if self.text:
+                _dict['text'] = self.text
+            if self.content_desc:
+                _dict['content'] = self.content_desc
+            if self.resource_id:
+                _dict['id'] = self.resource_id
+            if not _dict:
+                AndroidElement(name=self.name, **_dict).pinch_in(percent, steps)
+            else:
+                raise AdbError('Cannot pinch this element right now! Please wait new version!')
+        elif isinstance(self.selector, Selector):
+            self.u2obj.jsonrpc.pinchIn(self.selector, percent, steps)
+            logger.info(f'Pinch in: {self.name}')
+        else:
+            raise ElementNotFoundError(self.name)
+
+    def pinch_out(self, percent=100, steps=50):
+        """
+        放大手势，比如对某个图片
+
+        :param percent:
+        :param steps:
+        :return:
+        """
+        if self._info:
+            _dict = {}
+            if self.text:
+                _dict['text'] = self.text
+            if self.content_desc:
+                _dict['content'] = self.content_desc
+            if self.resource_id:
+                _dict['id'] = self.resource_id
+            if not _dict:
+                AndroidElement(name=self.name, **_dict).pinch_out(percent, steps)
+            else:
+                raise AdbError('Cannot pinch this element right now! Please wait new version!')
+
+        elif isinstance(self.selector, Selector):
+            self.u2obj.jsonrpc.pinchOut(self.selector, percent, steps)
+            logger.info(f'Pinch out: {self.name}')
+        else:
+            raise ElementNotFoundError(self.name)
 
     def wait(self, exists=True, timeout=None):
         """
@@ -522,6 +732,16 @@ class AndroidElement:
         else:
             logger.debug(f'abnormal element????????!!!!!!!!!')
 
+    def wait_gone(self, timeout=None):
+        """
+        等待元素消失
+
+        :param timeout: 超时时间
+        :return:
+        """
+        timeout = timeout or self.timeout or settings.ELEMENT_WAIT_TIMEOUT
+        return self.wait(exists=False, timeout=timeout)
+
     def assert_info(self, **kwargs):
         """
         断言元素属性信息
@@ -540,24 +760,70 @@ class AndroidElement:
             raise TestFailedError(f'Assert info of {self.name}, expected: {expected}, actual: {actual}')
         logger.info(f'Element info of "{self.name}" is as expected: {expected}')
 
-    def screenshot(self, filename=None, fmt='pillow'):
+    def assert_exist(self):
         """
-        元素截图
+        断言元素是否存在
 
-        :param filename: 保存的文件名称
-        :param fmt: 输出格式：pillow/opencv/base64
+        :return:
+        """
+        if self.__scroll:
+            self.scroll()
+        else:
+            if not self.exists:
+                raise ElementNotFoundError(self.selector)
+        logger.info(f'Assert element exists: {self.name}')
+
+    def assert_image(self, expected_image, similarity=0.8):
+        """
+        断言图片相似度
+
+        :param expected_image: 对比图片，路径或者opencv对象
+        :param similarity: 相似度，默认0.8
         :return:
         """
         # self.display()
-        img = self.device.screenshot(fmt='pillow')  # TODO
-        ele_img = img.crop(self.bounds)
-        if filename:
-            ele_img.save(filename)
-        if fmt == 'pillow':
-            return ele_img
-        elif fmt == 'base64':
-            return image.pillow2base64(ele_img)
-        return ele_img
+        time.sleep(0.5)
+        img = self.device.screenshot.pillow
+        l, t, r, b = self.bounds.unpack()
+        ele_img = img.crop((l, t, r, b))  # TODO
+        if isinstance(expected_image, str):
+            logger.info(f'Found expected image: {expected_image}')
+            target_image = Image.open(expected_image)
+        elif isinstance(expected_image, Image):
+            target_image = expected_image
+        else:
+            raise TestError("不合法的期望图片！")
+        result = image.calc_similarity(ele_img, target_image)
+        expected_image_name = os.path.basename(expected_image)
+        if result < similarity:
+            data = {
+                f'{self.device.name}-actual': ele_img,
+                f'{self.device.name}-expected': target_image
+            }
+            raise TestFailedError(f'Image assertion failed. Element: {self.name}, '
+                                  f'expected: {expected_image_name}, '
+                                  f'the similarity is expected {similarity} but got {result}',
+                                  data=data)
+        logger.info(f'[{self.device.serial} ({self.device.name})] '
+                    f'Assert image of element "{self.name}" with {expected_image_name}, '
+                    f'expected similarity is {similarity}, '
+                    f'actual similarity is {result}.')
+
+    def assert_not_exist(self):
+        """
+        断言元素不存在
+
+        :return:
+        """
+        if self.__scroll:
+            try:
+                self.scroll()
+                raise TestFailedError(f'Element "{self.name}" exists actually.')
+            except (ElementNotFoundError, AssertionError):
+                pass
+        else:
+            assert not self.exists, f'Element "{self.name}" exists actually.'
+        logger.info(f'Assert element not exist: {self.name}')
 
     def __getitem__(self, index):
         if isinstance(index, str):
