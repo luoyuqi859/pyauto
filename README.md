@@ -32,3 +32,81 @@
 
 ## 问题
 * 如何对比两个文字的字体大小  333200
+
+## 性能数据名词解析
+
+cpu
+
+```shell
+top
+```
+
+* device_cpu_rate：整机CPU使用率
+* user%：用户态CPU使用率
+* system%：内核态CPU使用率
+* idle%：空闲CPU
+* pid_cpu%：测试对象进程的CPU
+*
+
+FPS（流畅度)
+
+```shell
+dumpsys SurfaceFlinger 或 dumpsys gfxinfo
+```
+
+* fps：帧数
+* jank：丢帧数，掉帧（丢10帧算一次严重丢帧）
+*
+
+MEM（内存)
+
+```shell
+adb shell dumpsys meminfo [pkg]
+```
+
+* total_ram：设备总内存
+* free_ram：可用内存
+* pid_pss：测试对象进程的内存
+*
+
+Power（能耗）（不准确）
+
+```shell
+dumpsys batteryproperties
+
+dumpsys battery
+```
+
+* voltage：电压
+* tempreture：温度
+* current：电流（0表示没获取到）
+*
+
+PSS
+
+```shell
+adb shell dumpsys meminfo [pkg] 可以用来查看指定进程包名的内存使用情况
+```
+
+* pss：实际使用的物理内存
+* java_heap：java的堆内存
+* native_heap：其他的堆内存
+* system
+* android程序内存被分为2部分：native和dalvik，dalvik就是java堆，普通java对象是在java堆分配，而bitmap是直接在native上分配，对于内存的限制是
+  native+dalvik 不能超过最大限制
+*
+
+Thread Num（线程数)
+
+*
+
+Traffic（网络流量)
+```shell
+读取/proc/net/xt_qtaguid/stats
+```
+* device_total：设备总流量
+* device_receive：设备接收
+* device_transport：设备传输
+* pid_rx：上行流量
+* pid_tx：下行流量
+* pid_total：总流量
