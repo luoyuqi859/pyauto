@@ -51,10 +51,10 @@ def run():
         tmp = settings.report_path / "tmp"
         html = settings.report_path / "html"
         pytest.main(
-            ['--reruns=1', '--reruns-delay=2', "--count=1", "--random-order",
+            ['--reruns=1', '--reruns-delay=2', "--count=40", "--random-order",
              f'--alluredir={tmp}', "--clean-alluredir"])
         # pytest.main(
-        #     ["repos/GM/TeenDriver/test_teen_driver.py::test_427292", '--reruns=1', '--reruns-delay=2', "--count=1", "--random-order",
+        #     ["repos/GM/TeenDriver/test_teen_driver.py::test_427292", '--reruns=1', '--reruns-delay=2', "--count=2", "--random-order",
         #      f'--alluredir={tmp}', "--clean-alluredir"])
         """
                    --reruns: 失败重跑次数
@@ -75,14 +75,13 @@ def run():
         allure_data = AllureDataCollect(settings.report_path)
         data = allure_data.get_case_count()
         shutil.copy(src=settings.root_path / "utils" / "openReport.bat", dst=settings.report_path)
+        if config.excel_report:
+            ErrorCaseExcel(settings.report_path).write_case()
         notification_mapping = {
             NotificationType.FEI_SHU.value: FeiShuTalkChatBot(data).post
         }
         if config.notification_type != NotificationType.DEFAULT.value:
             notification_mapping.get(config.notification_type)()
-
-        if config.excel_report:
-            ErrorCaseExcel(settings.report_path).write_case()
         # 程序运行之后，自动启动报告，如果不想启动报告，可注释这段代码
         os.system(f"{settings.allure_bat} open {html} -p 9999")
 

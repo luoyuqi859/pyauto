@@ -182,7 +182,7 @@ class AdbOperator:
         # * windows out有输出  error没有输出  返回值0
         if process.poll() != 0:  # 返回码为非0，表示命令未执行成功返回
             if error and len(error) != 0:
-                logger.debug(f"adb执行出错:\n{error}")
+                logger.warning(f"adb执行:\n{error}")
             if "no devices/emulators found" in str(out) or "no devices/emulators found" in str(error):
                 logger.error("没有找到设备或模拟器,请重连,检查adb shell是否正常")
                 return ""

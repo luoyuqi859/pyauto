@@ -14,6 +14,7 @@
 * excel表格收集测试失败用例
 * allure报告失败截图
 * weditor辅助元素信息查找
+* 测试对象性能监控, memory,logcat,fps,cpu,thread_num (需校验是否是开发需要)
 
 ## 目录结构
     ├── conf                         // 配置相关目录

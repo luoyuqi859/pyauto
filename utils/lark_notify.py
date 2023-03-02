@@ -176,3 +176,4 @@ class FeiShuTalkChatBot:
             logging.error("消息发送失败，自动通知：%s", error_data)
             requests.post(config.lark.webhook, headers=headers, data=json.dumps(error_data))
         return result
+

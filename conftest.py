@@ -23,6 +23,7 @@ from uiauto.perf.pref_data_fun import PrefDataFun
 from uiauto.perf.thread_num import ThreadNumMonitor
 from utils.log import logger
 from utils import config
+from utils.time_fun import timeoperator
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -58,7 +59,8 @@ def pytest_collection_modifyitems(session, items):
     for item in items:
         item.name = item.name.encode("utf-8").decode("unicode_escape")
         item._nodeid = item.nodeid.encode("utf-8").decode("unicode_escape")
-    logger.info(f"收集到的测试用例：{items}")
+    num = len(items)
+    logger.info(f"收集到的测试用例：{items}, 数量:{num}")
 
 
 def pytest_terminal_summary(terminalreporter):
@@ -78,7 +80,8 @@ def pytest_terminal_summary(terminalreporter):
     logger.error(f"异常用例数: {_ERROR}")
     logger.error(f"跳过用例数: {_SKIP}")
     logger.warning(f"失败重跑总次数: {_RERUN}")
-    logger.info(f"用例执行时长: {_TIMES}")
+    total_time = timeoperator.s_to_hms(_TIMES)
+    logger.info(f"用例执行时长: {total_time}")
     try:
         _RATE = _PASSED / _TOTAL * 100
         logger.info("用例成功率: %.2f" % _RATE + " %")
@@ -113,11 +116,11 @@ def d_obj():
     return d
 
 
-@pytest.fixture(scope="session", params=None, autouse=True, ids=None, name=None)
-def uninstall():
-    """测试完毕卸载ATX"""
-    yield
-    uninstall_atx()
+# @pytest.fixture(scope="session", params=None, autouse=True, ids=None, name=None)
+# def uninstall():
+#     """测试完毕卸载ATX"""
+#     yield
+
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -148,7 +151,8 @@ def performance(d_obj):
         mem_monitor.start(t)
         # power_monitor.start(t)
         thread_num_monitor.start(t)
-        logcat_monitor.start(t)
+        logcat_monitor.start(t)\
+
         yield
         cpu_monitor.stop()
         # traffic_monitor.stop()
@@ -164,6 +168,10 @@ def performance(d_obj):
             logger.error(e)
     else:
         logger.info("没有开启性能监控功能")
+    # 调试期间可以注释掉，最后批量执行建议最后删掉ATX
+    # yield
+    # uninstall_atx()
+
 # def pytest_report_teststatus(report, config):
 #     """自定义测试结果"""
 #     if report.when == 'call' and report.passed:

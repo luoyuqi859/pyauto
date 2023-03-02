@@ -5,6 +5,9 @@
 @File: pref_data_fun
 @Created: 2023/2/24 16:34
 """
+import time
+
+import allure
 import pandas as pd
 from matplotlib import pyplot as plt, gridspec
 
@@ -153,4 +156,7 @@ class PrefDataFun:
         # df7.plot(x="datetime", kind="line", title="Traffic", ax=ax7)
         # plt.show()
         plt.savefig(new_path)
+        # time.sleep(10)
+        file_png = open(new_path, mode='rb').read()
+        allure.attach(file_png, 'pref_png', allure.attachment_type.PNG)
         return f"[性能数据]({new_path})\n"

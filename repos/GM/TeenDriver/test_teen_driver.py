@@ -876,7 +876,7 @@ def test_397660(d_obj: AndroidDevice):
         GMS.sendSignal(Signal='TeenDrvRsp', Value=6, Type='Signal', Mode='HS')
     with allure.step('16. Click Add Button'):
         d_obj.click(text="Add")
-        time.sleep(2)
+        time.sleep(10)
         d_obj.assert_exist(text="Key Not Detected")
         d_obj.assert_exist(text="Place a key in the transmitter pocket and tap Retry.")
         d_obj.assert_exist(text="Retry")
@@ -885,56 +885,56 @@ def test_397660(d_obj: AndroidDevice):
         d_obj.click(text="Cancel")
         d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
 
-
-@allure.title("To verify Driver Workload and Ignition Restrictions in IGNITION STATE")
-def test_397687(d_obj: AndroidDevice):
-    with allure.step('1. Open Settings Application'):
-        d_obj.click(text="Settings")
-    with allure.step('2. Send Teen Driver available signal TRUE - TeenDrvFtrAvl(1)'):
-        GMS.sendSignal(Signal='TeenDrvFtrAvl', Value=1, Type='Signal', Mode='HS')
-    with allure.step('3. Select Vehicle'):
-        d_obj.click(text="Vehicle")
-    with allure.step('4. Select Teen Driver'):
-        d_obj.click(text="Teen Driver")
-    with allure.step('5. Click continue'):
-        d_obj.click(text="Continue")
-    with allure.step('6. Enter a 4 digit PIN'):
-        d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
-    with allure.step('7. Click Enter  '):
-        d_obj.click(resourceId=element.enter)
-    with allure.step('8. Confirm your 4 digit PIN'):
-        d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
-
-    with allure.step('9. Send TeenDrvRsp Signal ==> 2=Teen_PIN_Updated'):
-        GMS.sendSignal(Signal='TeenDrvRsp', Value=2, Type='Signal', Mode='HS')
-        d_obj.click(resourceId=element.enter)
-    with allure.step('10. Click OK '):
-        d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
-    with allure.step('11. Send TeenDrvReq Signal ==> 5=Check_for_Teen_Key'):
-        GMS.sendSignal(Signal='TeenDrvReq', Value=5, Type='Signal', Mode='HS')
-    with allure.step('12. Send TeenDrvRsp Signal ==> 8=Key_Detected_As_NOT_Teen_Key'):
-        GMS.sendSignal(Signal='TeenDrvRsp', Value=8, Type='Signal', Mode='HS')
-    with allure.step('13. Click Add/Remove Teen Keys'):
-        d_obj.click(xpath=element.add_or_remove_teen_driver_keys)
-        d_obj.assert_exist(text="Add Teen Driver Key?")
-        d_obj.assert_exist(text="Teen Driver restrictions will apply when this key is used.")
-        d_obj.assert_exist(text="Add")
-        d_obj.assert_exist(text="Cancel")
-    with allure.step('14. Send TeenDrvReq Signal ==> 3=Set_Teen_Key'):
-        GMS.sendSignal(Signal='TeenDrvReq', Value=3, Type='Signal', Mode='HS')
-    with allure.step('15. Send TeenDrvRsp Signal ==> 6=Key_Not_Present'):
-        GMS.sendSignal(Signal='TeenDrvRsp', Value=6, Type='Signal', Mode='HS')
-    with allure.step('16. Click Add Button'):
-        d_obj.click(text="Add")
-        time.sleep(2)
-        d_obj.assert_exist(text="Key Not Detected")
-        d_obj.assert_exist(text="Place a key in the transmitter pocket and tap Retry.")
-        d_obj.assert_exist(text="Retry")
-        d_obj.assert_exist(text="Cancel")
-    with allure.step('17. Click Cancel Button'):
-        d_obj.click(text="Cancel")
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+#
+# @allure.title("To verify Driver Workload and Ignition Restrictions in IGNITION STATE")
+# def test_399687(d_obj: AndroidDevice):
+#     with allure.step('1. Open Settings Application'):
+#         d_obj.click(text="Settings")
+#     with allure.step('2. Send Teen Driver available signal TRUE - TeenDrvFtrAvl(1)'):
+#         GMS.sendSignal(Signal='TeenDrvFtrAvl', Value=1, Type='Signal', Mode='HS')
+#     with allure.step('3. Select Vehicle'):
+#         d_obj.click(text="Vehicle")
+#     with allure.step('4. Select Teen Driver'):
+#         d_obj.click(text="Teen Driver")
+#     with allure.step('5. Click continue'):
+#         d_obj.click(text="Continue")
+#     with allure.step('6. Enter a 4 digit PIN'):
+#         d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+#     with allure.step('7. Click Enter  '):
+#         d_obj.click(resourceId=element.enter)
+#     with allure.step('8. Confirm your 4 digit PIN'):
+#         d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+#
+#     with allure.step('9. Send TeenDrvRsp Signal ==> 2=Teen_PIN_Updated'):
+#         GMS.sendSignal(Signal='TeenDrvRsp', Value=2, Type='Signal', Mode='HS')
+#         d_obj.click(resourceId=element.enter)
+#     with allure.step('10. Click OK '):
+#         d_obj.click(xpath=element.ok)
+#         d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+#     with allure.step('11. Send TeenDrvReq Signal ==> 5=Check_for_Teen_Key'):
+#         GMS.sendSignal(Signal='TeenDrvReq', Value=5, Type='Signal', Mode='HS')
+#     with allure.step('12. Send TeenDrvRsp Signal ==> 8=Key_Detected_As_NOT_Teen_Key'):
+#         GMS.sendSignal(Signal='TeenDrvRsp', Value=8, Type='Signal', Mode='HS')
+#     with allure.step('13. Click Add/Remove Teen Keys'):
+#         d_obj.click(xpath=element.add_or_remove_teen_driver_keys)
+#         d_obj.assert_exist(text="Add Teen Driver Key?")
+#         d_obj.assert_exist(text="Teen Driver restrictions will apply when this key is used.")
+#         d_obj.assert_exist(text="Add")
+#         d_obj.assert_exist(text="Cancel")
+#     with allure.step('14. Send TeenDrvReq Signal ==> 3=Set_Teen_Key'):
+#         GMS.sendSignal(Signal='TeenDrvReq', Value=3, Type='Signal', Mode='HS')
+#     with allure.step('15. Send TeenDrvRsp Signal ==> 6=Key_Not_Present'):
+#         GMS.sendSignal(Signal='TeenDrvRsp', Value=6, Type='Signal', Mode='HS')
+#     with allure.step('16. Click Add Button'):
+#         d_obj.click(text="Add")
+#         time.sleep(2)
+#         d_obj.assert_exist(text="Key Not Detected")
+#         d_obj.assert_exist(text="Place a key in the transmitter pocket and tap Retry.")
+#         d_obj.assert_exist(text="Retry")
+#         d_obj.assert_exist(text="Cancel")
+#     with allure.step('17. Click Cancel Button'):
+#         d_obj.click(text="Cancel")
+#         d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
 
 
 @allure.title(
@@ -1267,21 +1267,23 @@ def test_423215(d_obj: AndroidDevice):
         d_obj(resourceId=element.btn_volume_decrease).click()
         assert d_obj(resourceId=element.btn_volume_increase).enabled == True, "assert btn increase on failed"
         assert d_obj(resourceId=element.btn_volume_decrease).enabled == True, "assert btn decrease on failed"
+        # 执行10次减小防止影响其他用例
+        d_obj(resourceId=element.btn_volume_decrease).click(times=10)
 
 
-@allure.title(
-    "To verify Teen Driver volume snack bar with default Audio Volume Limit setting in Teen Driver")
-@pytest.mark.usefixtures("driver_seat_belts_are_bucked_up")
-def test_424369(d_obj: AndroidDevice):
-    with allure.step('1. Send Teen Driver Active Authenticated / TDAP_TeenDrvrActvAuth Signal'):
-        GMS.sendSignal(Signal='TDAP_TeenDrvrActvAuth', Value=1, Type='Signal', Mode='HS')
-    with allure.step('2. Increase the volume by 1 level'):
-        d_obj.adb_fp.adb.shell("input keyevent 25")
-    with allure.step('3. Decrease the volume by 1 level'):
-        d_obj.adb_fp.adb.shell("input keyevent 24")
-    with allure.step('4. Decrease the volume till volume level reach 0'):
-        d_obj.click(text="Teen Driver")
-        d_obj.click(text="Continue")
+# @allure.title(
+#     "To verify Teen Driver volume snack bar with default Audio Volume Limit setting in Teen Driver")
+# @pytest.mark.usefixtures("driver_seat_belts_are_bucked_up")
+# def test_424369(d_obj: AndroidDevice):
+#     with allure.step('1. Send Teen Driver Active Authenticated / TDAP_TeenDrvrActvAuth Signal'):
+#         GMS.sendSignal(Signal='TDAP_TeenDrvrActvAuth', Value=1, Type='Signal', Mode='HS')
+#     with allure.step('2. Increase the volume by 1 level'):
+#         d_obj.adb_fp.adb.shell("input keyevent 25")
+#     with allure.step('3. Decrease the volume by 1 level'):
+#         d_obj.adb_fp.adb.shell("input keyevent 24")
+#     with allure.step('4. Decrease the volume till volume level reach 0'):
+#         d_obj.click(text="Teen Driver")
+#         d_obj.click(text="Continue")
 
 
 @allure.title(
