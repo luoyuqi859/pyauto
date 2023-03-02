@@ -10,13 +10,12 @@ excel_report: True
 lark:
   webhook: https://open.feishu.cn/open-apis/bot/v2/hook/e1d45e2f-acfd-4cf4-a521-94a30deb21b0
 
-
-# 测试对象性能监控
+# 测试对象性能监控 logcat, memory, cpu, fps, thread_num, 确保测试对象日期时间正确
 perf:
   # 性能监控开关
-  switch: False
+  switch: True
   # 对象apk
-  package: com.gm.teenmode
+  package: com.gm.hmi.settings
 
 
 

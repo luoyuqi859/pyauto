@@ -26,3 +26,5 @@ txt_dialog_message: "resourceId" = "com.gm.teenmode:id/txt_dialog_message"
 report_card_reset_btn: "resourceId" = "com.gm.teenmode:id/btn_reset_report_card"
 back: "resourceId" = "com.gm.teenmode:id/car_ui_toolbar_nav_icon"
 vehicle_teen_driver: "xpath" = '//*[@resource-id="com.gm.hmi.settings:id/rv_vehicle_sub_menu"]/android.view.ViewGroup[1]/android.widget.LinearLayout[1]'
+btn_volume_increase: "resourceId" = "com.gm.teenmode:id/btn_fab_plus"
+btn_volume_decrease: "resourceId" = "com.gm.teenmode:id/btn_fab_minus"

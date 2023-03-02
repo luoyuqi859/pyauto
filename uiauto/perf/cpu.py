@@ -102,7 +102,7 @@ class PckCpuinfo(object):
                             self.total_pid_cpu = self.total_pid_cpu + float(self.pck_cpu_rate)
                         break
             self.package_list.append(package_dic)
-            logger.debug(package_dic)
+            # logger.debug(package_dic)
 
     def _parse_cpu_usage(self):
         """
@@ -117,9 +117,9 @@ class PckCpuinfo(object):
                 self.iow_rate = match.group(3)
                 self.irq_rate = match.group(4)
                 self.device_cpu_rate = int(self.user_rate) + int(self.system_rate)
-                logger.debug(f"system_rate: {self.system_rate};"
-                             f"user_rate:{self.user_rate};"
-                             f"device_cpu_rate:{self.device_cpu_rate}")
+                # logger.debug(f"system_rate: {self.system_rate};"
+                #              f"user_rate:{self.user_rate};"
+                #              f"device_cpu_rate:{self.device_cpu_rate}")
         else:  # 8.0及其以上的版本 turandot 27
             #  1:cpu   2:user   3:nice  4:sys  5:idle     6:iow  7:irq    8:sirq   9:host
             match = self.RE_CPU_O.search(self.source)
@@ -131,10 +131,10 @@ class PckCpuinfo(object):
                 self.iow_rate = match.group(6)
                 self.irq_rate = match.group(7)
                 self.device_cpu_rate = int(self.user_rate) + int(self.system_rate)
-                logger.debug(f"user_rate:{self.user_rate};"
-                             f"sys:{self.system_rate};"
-                             f"device_cpu_rate:{self.device_cpu_rate};"
-                             f"idle_rate:{self.idle_rate}")
+                # logger.debug(f"user_rate:{self.user_rate};"
+                #              f"sys:{self.system_rate};"
+                #              f"device_cpu_rate:{self.device_cpu_rate};"
+                #              f"idle_rate:{self.idle_rate}")
 
     def sum_procs_cpurate(self):
         """
@@ -278,7 +278,7 @@ class CpuCollector(object):
             return
         out = str(out, "utf-8")
         out.replace('\r', '')
-        top_file = os.path.join(self._path or settings.report_path, 'top.txt')
+        top_file = os.path.join(self._path, 'top.txt')
         with open(top_file, "a+", encoding="utf-8") as writer:
             writer.write(timeoperator.now1 + " top info:\n")
             writer.write(out + "\n\n")
@@ -290,7 +290,7 @@ class CpuCollector(object):
     def get_max_freq(self):
         out = self.device.adb.run_shell_cmd("cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq")
         out.replace('\r', '')
-        max_freq_file = os.path.join(self._path or settings.report_path, 'scaling_max_freq.txt')
+        max_freq_file = os.path.join(self._path, 'scaling_max_freq.txt')
         with open(max_freq_file, "a+", encoding="utf-8") as writer:
             writer.write(timeoperator.now1 + " scaling_max_freq:\n")
             writer.write(out + "\n\n")
@@ -302,7 +302,7 @@ class CpuCollector(object):
         """
         end_time = time.time() + self._timeout
         cpu_title = ["datetime", "device_cpu_rate%", "user%", "system%", "idle%"]
-        cpu_file = os.path.join(self._path or settings.report_path, 'cpuinfo.csv')
+        cpu_file = os.path.join(self._path, 'cpuinfo.csv')
         for i in range(0, len(self.packages)):
             cpu_title.extend(["package", "pid", "pid_cpu%"])
         if len(self.packages) > 1:
@@ -385,7 +385,7 @@ class CpuMonitor(object):
 
 
 if __name__ == '__main__':
-    monitor = CpuMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packages=["com.gm.teenmode"],
+    monitor = CpuMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packages=["com.gm.hmi.settings"],
                          interval=5)
     monitor.start(timeoperator.strftime_now("%Y_%m_%d_%H_%M_%S"))
     time.sleep(20)

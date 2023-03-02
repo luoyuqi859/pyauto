@@ -56,7 +56,7 @@ class ThreadNumPackageCollector(object):
         end_time = time.time() + self._timeout
         thread_list_titile = (
             "datatime", "packagename", "pid", "thread_num")
-        thread_num_file = os.path.join(self._path or settings.report_path, 'thread_num.csv')
+        thread_num_file = os.path.join(self._path, 'thread_num.csv')
         try:
             with open(thread_num_file, 'a+') as df:
                 csv.writer(df, lineterminator='\n').writerow(thread_list_titile)
@@ -71,7 +71,7 @@ class ThreadNumPackageCollector(object):
                 before = time.time()
                 # 获取pakagename的thread num信息
                 thread_pck_info = self.get_process_thread_num(self.packagename)
-                logger.debug(thread_pck_info)
+                # logger.debug(thread_pck_info)
                 current_time = timeoperator.strftime_now("%Y-%m-%d %H-%M-%S")
                 if not thread_pck_info:
                     continue
@@ -128,7 +128,7 @@ class ThreadNumMonitor(object):
 
 
 if __name__ == "__main__":
-    monitor = ThreadNumMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packagename="com.baidu.tieba",
+    monitor = ThreadNumMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packagename="com.gm.hmi.settings",
                                interval=3)
     monitor.start(timeoperator.strftime_now("%Y_%m_%d_%H_%M_%S"))
     time.sleep(20)

@@ -7,12 +7,13 @@
 """
 import math
 import re
+import subprocess
 import time
 import xml
 
 from conf import settings
 import uiautomator2 as u2
-from uiauto.android.adb import ADB, adb
+from uiauto.android.adb import ADB
 from uiauto.android.android_keys import AndroidKeys
 from uiauto.android.parse import Bounds
 from uiauto.android.plugins.accessory import Accessory
@@ -34,7 +35,7 @@ from uiauto.android.plugins.swipe import UiaSwipe
 from uiauto.android.plugins.wifi import Wifi
 from uiauto.android.u2.element import AndroidElement
 from uiauto.android.u2.selector import Selector
-from utils.errors import ElementNotFoundError
+from utils.errors import ElementNotFoundError, AdbError
 
 from utils.log import logger
 
@@ -63,7 +64,7 @@ class AndroidDevice(BaseDevice):
         # self._ocr = None
 
     def __getattr__(self, item):
-        # self.__get_info()
+        self.__get_info()
         return self.get(item, None)
 
     def __call__(self, o=None, **kwargs):
@@ -75,10 +76,10 @@ class AndroidDevice(BaseDevice):
             return AndroidElement(device=self, **kwargs)
         return AndroidElement(device=self, **kwargs)
 
-    # @property
-    # def info(self):
-    #     """获取设备基本信息"""
-    #     return self
+    @property
+    def info(self):
+        """获取设备基本信息"""
+        return self
 
     def __get_info(self):
         res = self.d.http.get('/info').json()
@@ -110,7 +111,7 @@ class AndroidDevice(BaseDevice):
         序列号
         """
         if not self.get('serial'):
-            self['serial'] = adb.adb.serial
+            self['serial'] = self._adb.adb.serial
         return self['serial']
 
     @property
@@ -136,39 +137,39 @@ class AndroidDevice(BaseDevice):
 
     @property
     def event(self):
-        return Event(self.d)
+        return Event(self)
 
     @property
     def prop(self):
-        return Prop(self.d)
+        return Prop(self)
 
     @property
     def app(self):
-        return App(self.d)
+        return App(self)
 
     @property
     def qs(self):
-        return QuickSettings(self.d)
+        return QuickSettings(self)
 
     @property
     def battery(self):
-        return UiaBattery(self.d)
+        return UiaBattery(self)
 
     @property
     def bt(self):
-        return Bluetooth(self.d)
+        return Bluetooth(self)
 
     @property
     def airplane(self):
-        return Airplane(self.d)
+        return Airplane(self)
 
     @property
     def wifi(self):
-        return Wifi(self.d)
+        return Wifi(self)
 
     @property
     def accessory(self):
-        return Accessory(self.d)
+        return Accessory(self)
 
     @property
     def forward(self):
@@ -181,7 +182,7 @@ class AndroidDevice(BaseDevice):
     @property
     def rotation(self):
         if 'rotation' not in self:
-            self['rotation'] = UiaRotation(self.d)
+            self['rotation'] = UiaRotation(self)
         return self.get('rotation')
 
     @property
@@ -452,6 +453,20 @@ class AndroidDevice(BaseDevice):
             logger.error("「{}」found element failed「{}」".format(element, e))
         finally:
             return is_exist
+
+    def shell(self, cmd_args, stream=False, timeout=60):
+        cmdline = subprocess.list2cmdline(cmd_args) if isinstance(cmd_args, (list, tuple)) else cmd_args
+        if stream:
+            return self.d.http.get("get", "/shell/stream", params={"command": cmdline}, timeout=None, stream=True)
+        ret = self.d.http.post('/shell', data={'command': cmdline, 'timeout': str(timeout)},
+                               timeout=timeout + 10, retry=False)
+        if ret.status_code != 200:
+            raise RuntimeError("device agent responds with an error code %d" % ret.status_code, ret.text)
+        resp = ret.json()
+        error = resp.get('error')
+        if error:
+            raise AdbError(error)
+        return resp.get('output')
 
     def __repr__(self):
         return f'<AndroidDevice {self.name or self.serial}'

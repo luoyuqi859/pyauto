@@ -16,18 +16,7 @@ from conf import settings
 from uiauto.android.adb import ADB
 from utils.log import logger
 from utils.time_fun import timeoperator
-
-
-def mV2V(v):
-    return round(v / 1000.0, 2)
-
-
-def uA2mA(c):
-    return round(c / 1000.0, 2)
-
-
-def transfer_temp(temp):
-    return round(temp / 10.0, 1)
+from utils.tools import mV2V, uA2mA, transfer_temp
 
 
 class DevicePowerInfo:
@@ -99,14 +88,14 @@ class PowerCollector:
         else:
             power_info = DevicePowerInfo(out)
             if power_info.voltage == '0':  # 三星的机型上测试会发现这个dump出来的电压，电量，等为0 ，不正确,重新获取下
-                logger.debug("获得的电压为0,重新获取")
+                # logger.debug("获得的电压为0,重新获取")
                 reg = self.device.adb.run_shell_cmd("dumpsys battery")
                 reg.replace('\r', '')
                 power_dic = self._get_powerinfo_dic(reg)
                 power_info.level = power_dic['level']
                 power_info.temp = power_dic['temperature']
                 power_info.voltage = power_dic['voltage']
-        logger.debug(power_info)
+        # logger.debug(power_info)
         return power_info
 
     def _cat_current(self):
@@ -133,7 +122,7 @@ class PowerCollector:
             current_l = re.findall(u'current now:\s?(\d+)', out)
             vol_l = re.findall(u'  voltage:\s?(\d+)', out)
             vol_ll = re.findall(u'  voltage:\s?(\d+)', out)
-            logger.debug(vol_ll)
+            # logger.debug(vol_ll)
             dic['level'] = level_l[0] if len(level_l) else 0
             dic['temperature'] = temp_l[0] if len(temp_l) else 0
             dic['current'] = current_l[0] if len(current_l) else 0
@@ -153,7 +142,7 @@ class PowerCollector:
         """
         end_time = time.time() + self._timeout
         power_list_titile = ("datetime", "level", "voltage(V)", "tempreture(C)", "current(mA)")
-        power_device_file = os.path.join(self._path or settings.report_path, 'powerinfo.csv')
+        power_device_file = os.path.join(self._path, 'powerinfo.csv')
         try:
             with open(power_device_file, 'a+') as df:
                 csv.writer(df, lineterminator='\n').writerow(power_list_titile)
@@ -245,5 +234,5 @@ class PowerMonitor(object):
 if __name__ == "__main__":
     monitor = PowerMonitor(path=settings.root_path / "uiauto" / "perf" / "record", interval=5)
     monitor.start(timeoperator.strftime_now("%Y_%m_%d_%H_%M_%S"))
-    time.sleep(30)
+    time.sleep(10)
     monitor.stop()

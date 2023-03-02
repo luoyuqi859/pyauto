@@ -7,12 +7,16 @@
 """
 import time
 
+import allure
 import pytest
 
 from conf import settings
+from uiauto import uninstall_atx
+from uiauto.android.device import AndroidDevice, connect
 from uiauto.perf.cpu import CpuMonitor
 from uiauto.perf.flow import TrafficMonitor
 from uiauto.perf.fps import FPSMonitor
+from uiauto.perf.logcat import LogcatMonitor
 from uiauto.perf.memory import MemMonitor
 from uiauto.perf.power import PowerMonitor
 from uiauto.perf.pref_data_fun import PrefDataFun
@@ -82,46 +86,84 @@ def pytest_terminal_summary(terminalreporter):
         logger.info("用例成功率: 0.00 %")
 
 
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    '''
+    获取每个用例状态的钩子函数
+    :param item:
+    :param call:
+    :return:
+    '''
+    # 获取钩子方法的调用结果
+    outcome = yield
+    res = outcome.get_result()
+    if res.outcome in ['failed', 'error']:
+        device: AndroidDevice = item.funcargs.get("d_obj", None)
+        # 添加allure报告截图
+        if device is not None:
+            logger.warning("用例出错,即将截图")
+            allure.attach(device.d.screenshot(format='base64'), "失败截图", allure.attachment_type.PNG)
+
+
+@pytest.fixture(scope="session", params=None, autouse=True, ids=None, name=None)
+def d_obj():
+    u2 = connect()
+    d = AndroidDevice(device=u2)
+    d.minicap.install_minicap()
+    return d
+
+
+@pytest.fixture(scope="session", params=None, autouse=True, ids=None, name=None)
+def uninstall():
+    """测试完毕卸载ATX"""
+    yield
+    uninstall_atx()
+
+
 @pytest.fixture(scope="session", autouse=True)
-def performance():
+def performance(d_obj):
     """
     统计设备cpu情况
     @return:
     """
+    logger.info(d_obj.d.info)
+    logger.info("初始化设备成功")
     if config.perf.switch:
+        settings.perf_path.mkdir()
         app = config.perf.package
         logger.info(f"即将开启设备监控,app: {app}")
         frequency = 5
         t = settings.current_time
-        cpu_monitor = CpuMonitor(packages=[app], interval=frequency)
-        traffic_monitor = TrafficMonitor(packages=[app], interval=frequency)
-        fps_monitor = FPSMonitor(package_name=app, frequency=frequency)
-        mem_monitor = MemMonitor(packages=[app], interval=frequency)
-        power_monitor = PowerMonitor(interval=frequency)
-        thread_num_monitor = ThreadNumMonitor(packagename=app, interval=frequency)
+        cpu_monitor = CpuMonitor(packages=[app], interval=frequency, path=settings.perf_path)
+        logcat_monitor = LogcatMonitor(path=settings.perf_path)
+        # traffic_monitor = TrafficMonitor(packages=[app], interval=frequency, path=settings.perf_path)
+        fps_monitor = FPSMonitor(package_name=app, frequency=frequency, path=settings.perf_path)
+        mem_monitor = MemMonitor(packages=[app], interval=frequency, path=settings.perf_path)
+        # power_monitor = PowerMonitor(interval=frequency, path=settings.perf_path)
+        thread_num_monitor = ThreadNumMonitor(packagename=app, interval=frequency, path=settings.perf_path)
 
         cpu_monitor.start(t)
-        traffic_monitor.start(t)
+        # traffic_monitor.start(t)
         fps_monitor.start(t)
         mem_monitor.start(t)
         # power_monitor.start(t)
         thread_num_monitor.start(t)
+        logcat_monitor.start(t)
         yield
         cpu_monitor.stop()
-        traffic_monitor.stop()
+        # traffic_monitor.stop()
         fps_monitor.stop()
         mem_monitor.stop()
         # power_monitor.stop()
         thread_num_monitor.stop()
+        logcat_monitor.stop()
         try:
             d = PrefDataFun()
-            d.all_handle()
+            d.all_handle(path=settings.perf_path)
         except Exception as e:
             logger.error(e)
     else:
         logger.info("没有开启性能监控功能")
-        yield
-
 # def pytest_report_teststatus(report, config):
 #     """自定义测试结果"""
 #     if report.when == 'call' and report.passed:

@@ -21,6 +21,9 @@ def teen_driver_start(d_obj: AndroidDevice):
         GMS.sendSignal(Signal='TeenDrvReq', Value=0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='TeenDrvRsp', Value=0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='TDAP_TeenDrvrActvAuth', Value=0, Type='Signal', Mode='HS')
+        GMS.sendSignal(Signal='TDOSWCCSV_CrSetVal', Value=1, Type='Signal', Mode='HS')
+        GMS.sendSignal(Signal='ORIP_DrvrStBltStsAuth', Value=0, Type='Signal', Mode='HS')
+        GMS.sendSignal(Signal='FrntPsSeatbeltStat', Value=0, Type='Signal', Mode='HS')
     with allure.step('设置挡位到PARK并设置速度为0.0'):
         GMS.sendSignal(Signal='TEGP_TrnsShftLvrPstnAuth', Value=1, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='TEGP_TrnsShftLvrPstnAuth_Inv', Value=0, Type='Signal', Mode='HS')
@@ -34,6 +37,13 @@ def teen_driver_start(d_obj: AndroidDevice):
         GMS.sendSignal(Signal='TeenDrvFtrAvl', Value=0, Type='Signal', Mode='HS')
         d_obj.press("home")
 
+
+@pytest.fixture(scope="function", params=None, autouse=False, ids=None, name=None)
+def driver_seat_belts_are_bucked_up():
+    GMS.sendSignal(Signal='ORIP_DrvrStBltStsAuth', Value=2, Type='Signal', Mode='HS')
+    GMS.sendSignal(Signal='ORIP_DrvrStBltStsAuth_Inv', Value=0, Type='Signal', Mode='HS')
+    GMS.sendSignal(Signal='FrntPsSeatbeltStat', Value=2, Type='Signal', Mode='HS')
+    GMS.sendSignal(Signal='FrntPsSeatbeltStat_Inv', Value=0, Type='Signal', Mode='HS')
 
 @pytest.fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 def pin_code_save(d_obj: AndroidDevice):

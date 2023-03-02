@@ -6,12 +6,12 @@
 @Created: 2023/2/22 18:00
 """
 import os
+import platform
 import re
 import subprocess
-import sys
 import threading
 import time
-from typing import List, Union
+from typing import List
 
 import whichcraft
 
@@ -24,20 +24,30 @@ from utils.time_fun import timeoperator
 
 
 class AdbOperator:
+
     def __init__(self, device_id=None):
-        self._adb_path = self.location()
+        self._adb_path = AdbOperator.location()
         self._device_id = device_id
         self.before_connect = True
         self.after_connect = True
         self._sdk_version = None
 
-    @classmethod
-    def location(cls):
+    @staticmethod
+    def location():
         """获取ADB路径"""
         p = whichcraft.which("adb")
         if p is None:
-            adb_dir = Path(__file__).parent / 'sdk' / 'adb.exe'
-            return os.path.abspath(adb_dir)
+            os_name = platform.system()
+            logger.debug(f"platform : {os_name}")
+            if os_name == "Windows":
+                adb_dir = Path(__file__).parent / 'sdk' / 'adb.exe'
+                return os.path.abspath(adb_dir)
+            elif os_name == "Darwin":
+                adb_dir = Path(__file__).parent / 'sdk' / 'platform-tools-latest-darwin' / 'platform-tools' / 'adb'
+                return os.path.abspath(adb_dir)
+            else:
+                adb_dir = Path(__file__).parent / 'sdk' / 'platform-tools-latest-linux' / 'platform-tools' / 'adb'
+                return os.path.abspath(adb_dir)
         return p
 
     @property
@@ -46,6 +56,22 @@ class AdbOperator:
             for serial, _ in self.devices():
                 return serial
         return self._device_id
+
+    def devices(self):
+        """adb devices"""
+        try:
+            result = self.run_adb_cmd('devices')
+            if result:
+                lines = result.splitlines()
+                for line in lines:
+                    arr = line.strip().split('\t')
+                    if len(arr) < 2:
+                        continue
+                    yield arr
+        except (TimeoutError, subprocess.TimeoutExpired):
+            self.kill_server()
+            time.sleep(5)
+            self.start_server()
 
     def connect(self, ip, port):
         """
@@ -64,22 +90,6 @@ class AdbOperator:
         @return:
         """
         self.run_adb_cmd(f"disconnect {ip}:{port}")
-
-    def devices(self):
-        """adb devices"""
-        try:
-            result = self.run_adb_cmd('devices')
-            if result:
-                lines = result.splitlines()
-                for line in lines:
-                    arr = line.strip().split('\t')
-                    if len(arr) < 2:
-                        continue
-                    yield arr
-        except (TimeoutError, subprocess.TimeoutExpired):
-            self.kill_server()
-            time.sleep(5)
-            self.start_server()
 
     def start_server(self):
         """开启 adb 服务"""
@@ -151,7 +161,7 @@ class AdbOperator:
                 arg = arg.decode('utf8')
             cmdlet.append(arg)
         cmdStr = " ".join(cmdlet)
-        logger.debug(f'执行的语句为{cmdStr}')
+        # logger.debug(f'执行的语句为{cmdStr}')
         process = subprocess.Popen(cmdStr,
                                    stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE,
@@ -204,6 +214,15 @@ class AdbOperator:
             except Exception:
                 out = repr(out)
         return out.strip()
+
+    def is_process_running(self, process_name):
+        '''判断进程是否存活
+        '''
+        process_list = self.list_process()
+        for process in process_list:
+            if process['proc_name'] == process_name:
+                return True
+        return False
 
     def run_adb_cmd(self, cmd, *argv, **kwds):
         """
@@ -450,6 +469,32 @@ class AdbOperator:
                 pck_list.append(item)
         return pck_list
 
+    def get_process_stack_from_pid(self, pid, save_path):
+        '''
+        :param package_name: 进程名
+        :param save_path: 堆栈文件保存路径
+        :return: 无
+        '''
+        return self.run_shell_cmd("debuggerd -b %s > %s" % (pid, save_path))
+
+    def kill_process(self, process_name):
+        '''杀死包含指定进程
+        '''
+        pids = self.get_process_pids(process_name)
+        if pids:
+            self.run_shell_cmd('kill ' + ' '.join([str(pid) for pid in pids]))
+        return len(pids)
+
+    def get_process_pids(self, process_name):
+        '''查找包含指定进程名的进程PID
+        '''
+        pids = []
+        process_list = self.list_process()
+        for process in process_list:
+            if process['proc_name'] == process_name:
+                pids.append(process['pid'])
+        return pids
+
     def list_process(self):
         """
         获取进程列表
@@ -612,17 +657,16 @@ class ADB():
         self.adb = AdbOperator(device_id)
 
 
-adb = ADB()
-
 if __name__ == '__main__':
     a = ADB()
-    print(a.adb.path("/data/local/tmp/minicap").exists)
-    print(Path(__file__).parent / 'sdk' / 'adb.exe')
-    print(a.adb.location())
-    print(a.adb.serial)
-    print(a.adb.phone_brand)
-    print(a.adb.phone_model)
-    print(a.adb.screen_size)
-    print(a.adb.sdk_version)
-    print(a.adb.get_cpu_abi())
-    print(a.adb.serial)
+    a.adb.run_shell_cmd("mkdir /data/local/tmp")
+    # print(a.adb.path("/data/local/tmp/minicap").exists)
+    # print(Path(__file__).parent / 'sdk' / 'adb.exe')
+    # print(a.adb.location())
+    # print(a.adb.serial)
+    # print(a.adb.phone_brand)
+    # print(a.adb.phone_model)
+    # print(a.adb.screen_size)
+    # print(a.adb.sdk_version)
+    # print(a.adb.get_cpu_abi())
+    # print(a.adb.serial)

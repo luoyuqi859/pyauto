@@ -159,7 +159,7 @@ class SurfaceStatsCollector(object):
         """
         处理surfaceflinger数据
         """
-        fps_file = os.path.join(self._path or settings.report_path, 'fps.csv')
+        fps_file = os.path.join(self._path, 'fps.csv')
         if self.use_legacy_method:
             fps_title = ['datetime', 'fps']
         else:
@@ -171,7 +171,7 @@ class SurfaceStatsCollector(object):
                     fps_file_dic = {'fps_file': fps_file}
                     self.fps_queue.put(fps_file_dic)
         except RuntimeError as e:
-            logger.exception(e)
+            pass
         while True:
             try:
                 data = self.data_queue.get()
@@ -187,19 +187,19 @@ class SurfaceStatsCollector(object):
                     if fps > 60:
                         fps = 60
                     self.surface_before = data
-                    logger.debug('FPS:%2s' % fps)
+                    # logger.debug('FPS:%2s' % fps)
                     tmp_list = [timeoperator.strftime_now("%Y_%m_%d_%H_%M_%S"), fps]
                     try:
                         with open(fps_file, 'a+', encoding="utf-8") as f:
                             csv.writer(f, lineterminator='\n').writerow(tmp_list)
                     except RuntimeError as e:
-                        logger.exception(e)
+                        logger.error(e)
                 else:
                     refresh_period = data[0]
                     timestamps = data[1]
                     collect_time = data[2]
                     fps, jank = self._calculate_results(refresh_period, timestamps)
-                    logger.debug('FPS:%2s Jank:%s' % (fps, jank))
+                    # logger.debug('FPS:%2s Jank:%s' % (fps, jank))
                     fps_list = [collect_time, self.focus_window, fps, jank]
                     if self.fps_queue:
                         self.fps_queue.put(fps_list)
@@ -210,7 +210,7 @@ class SurfaceStatsCollector(object):
                                 tmp_list[0] = timeoperator.strftime_now("%Y-%m-%d %H-%M-%S", tmp_list[0])
                                 csv.writer(f, lineterminator='\n').writerow(tmp_list)
                         except RuntimeError as e:
-                            logger.exception(e)
+                            logger.error(e)
                 time_consume = time.time() - before
                 delta_inter = self.frequency - time_consume
                 if delta_inter > 0:
@@ -218,7 +218,7 @@ class SurfaceStatsCollector(object):
             except:
                 logger.error("an exception hanpend in fps _calculator_thread ,reason unkown!")
                 s = traceback.format_exc()
-                logger.debug(s)
+                # logger.debug(s)
                 if self.fps_queue:
                     self.fps_queue.task_done()
 
@@ -265,7 +265,7 @@ class SurfaceStatsCollector(object):
                         if self.focus_window != cur_focus_window:
                             self.focus_window = cur_focus_window
                             continue
-                    logger.debug(timestamps)
+                    # logger.debug(timestamps)
                     self.data_queue.put((refresh_period, timestamps, time.time()))
                     time_consume = time.time() - before
                     delta_inter = self.frequency - time_consume
@@ -400,7 +400,7 @@ class SurfaceStatsCollector(object):
             try:
                 refresh_period = int(results[0]) / nanoseconds_per_second
             except Exception as e:
-                logger.exception(e)
+                logger.error(e)
                 return (None, None)
             # If a fence associated with a frame is still pending when we query the
             # latency data, SurfaceFlinger gives the frame a timestamp of INT64_MAX.
@@ -508,8 +508,8 @@ class FPSMonitor():
 
 
 if __name__ == '__main__':
-    monitor = FPSMonitor(path=settings.root_path / "uiauto" / "perf" / "record", package_name="com.baidu.tieba",
+    monitor = FPSMonitor(path=settings.root_path / "uiauto" / "perf" / "record", package_name="com.gm.hmi.settings",
                          frequency=1)
     monitor.start(timeoperator.strftime_now("%Y_%m_%d_%H_%M_%S"))
-    time.sleep(10)
+    time.sleep(20)
     monitor.stop()

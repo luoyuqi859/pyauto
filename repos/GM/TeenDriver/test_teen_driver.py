@@ -309,9 +309,8 @@ def test_385119(d_obj: AndroidDevice):
 # @allure.title("To verify seat belt restriction for both driver and front seat passenger with volume changes")
 # def test_386643(d_obj: AndroidDevice):
 
-
 @allure.title("To verify Add button in Add Teen Driver Key process")
-def test_391802(d_obj: AndroidDevice):
+def test_391799(d_obj: AndroidDevice):
     with allure.step('1. Open Settings Application'):
         d_obj.click(text="Settings")
     with allure.step('2. Send Teen Driver available signal TRUE - TeenDrvFtrAvl(1)'):
@@ -356,6 +355,65 @@ def test_391802(d_obj: AndroidDevice):
     with allure.step('17. Click OK button'):
         d_obj.click(xpath=element.ok)
         d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+
+
+@allure.title("To verify Remove button in Remove Teen Driver Key process")
+def test_391802(d_obj: AndroidDevice):
+    """
+    step:
+    1. Open Settings Application    2. Send Teen Driver available signal TRUE - TeenDrvFtrAvl(1)
+    3. Select Vehicle      4. Select Teen Driver
+    5. Select Continue    6. Enter a 4 digit PIN
+    7. Click Enter
+    8. Confirm your 4 digit PIN
+    9. Send TeenDrvRsp Signal ==> 2=Teen_PIN_Updated
+    10. Click OK
+    11. Send TeenDrvReq Signal ==> 5=Check_for_Teen_Key
+    12. Send TeenDrvRsp Signal ==> 7=Key_Detected_As_Teen_Key
+    13. Click Add/Remove Teen Driver Keys
+    14. Send TeenDrvReq Signal ==> 4 = Clear_Teen_Key
+    15. Send TeenDrvRsp Signal ==> 5 = Teen Key Clear complete
+    16. Click Remove Button
+    17. Click OK button
+    expect:
+    10.Verify Add/Remove Teen Driver Keys exits in Teen Driver menu
+     13.Remove Teen Driver Key page is displayed
+        i. Verify Remove Teen Driver Key? text is displayed
+        ii. Verify Teen Driver restrictions will apply when this key is used. Text is displayed
+        iii. Verify Remove button is displayed  iv. Verify Cancel button is displayed
+    16.Verify Key Removed page is displayed
+        i. Verify Key Removed text is displayed
+        ii. Verify This key will no longer have Teen Driver Restrictions. Text is displayed
+        iii. Verify OK button is displayed
+    17.Verify Add/Remove Teen Driver Keys in Teen Driver Menu is displayed
+    """
+    d_obj.click(text="Settings")
+    GMS.sendSignal(Signal='TeenDrvFtrAvl', Value=1, Type='Signal', Mode='HS')
+    d_obj.click(text="Vehicle")
+    d_obj.click(text="Teen Driver")
+    d_obj.click(text="Continue")
+    d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+    d_obj.click(resourceId=element.enter)
+    d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+    GMS.sendSignal(Signal='TeenDrvRsp', Value=2, Type='Signal', Mode='HS')
+    d_obj.click(resourceId=element.enter)
+    d_obj.click(xpath=element.ok)
+    d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+    GMS.sendSignal(Signal='TeenDrvReq', Value=5, Type='Signal', Mode='HS')
+    GMS.sendSignal(Signal='TeenDrvRsp', Value=7, Type='Signal', Mode='HS')
+
+    d_obj.click(xpath=element.add_or_remove_teen_driver_keys)
+    d_obj.assert_exist(text="Remove Teen Driver Key?")
+    d_obj.assert_exist(text="This key will no longer have Teen Driver restrictions.")
+    d_obj.assert_exist(text="Remove")
+    d_obj.assert_exist(text="Cancel")
+    GMS.sendSignal(Signal='TeenDrvReq', Value=4, Type='Signal', Mode='HS')
+    GMS.sendSignal(Signal='TeenDrvRsp', Value=5, Type='Signal', Mode='HS')
+    d_obj.click(text="Remove")
+    d_obj.assert_exist(text="Key Removed")
+    d_obj.assert_exist(text="This key no longer has Teen Driver restrictions.")
+    d_obj.click(xpath=element.ok)
+    d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
 
 
 @allure.title("To verify Clear All Keys and PIN Success process")
@@ -984,7 +1042,7 @@ def test_399762(d_obj: AndroidDevice):
         GMS.sendSignal(Signal='TeenDrvRsp', Value=6, Type='Signal', Mode='HS')
     with allure.step('16. Click Remove Button'):
         d_obj.click(text="Remove")
-        time.sleep(2)
+        time.sleep(10)
         d_obj.assert_exist(text="Key Not Detected")
     with allure.step(
             '17. Send below signals AutoTransGrDispdVal set to 3 = N AutoTransGrDispdVal_Inv set to False VSADP_VehSpdAvgDrvnAuth set to 0.0 VSADP_VehSpdAvgDrvnAuth_Inv set to False'):
@@ -992,6 +1050,18 @@ def test_399762(d_obj: AndroidDevice):
         GMS.sendSignal(Signal='TEGP_TrnsShftLvrPstnAuth_Inv', Value=0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='VSADP_VehSpdAvgDrvnAuth', Value=10.0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='VSADP_VehSpdAvgDrvnAuth_Inv', Value=0, Type='Signal', Mode='HS')
+        time.sleep(10)
+        d_obj.assert_exist(text="Vehicle")
+        e = d_obj(resourceId='com.gm.hmi.settings:id/car_ui_list_item_text_container')[1]
+        e.click()
+        time.sleep(1)
+        el = d_obj(resourceId='com.gm.hmi.settings:id/rv_vehicle_sub_menu').child(className="android.view.ViewGroup",
+                                                                                  index=3)
+        el.screenshot(settings.report_path / 'menu_unavailable_while_driving.png')
+        time.sleep(1)
+        text_list = d_obj.ocr.image_to_text(settings.report_path / 'menu_unavailable_while_driving.png')
+        assert text_list[0] == "Menu unavailable while driving", "menu assert failed"
+
     with allure.step('18. Wait 30 seconds'):
         time.sleep(30)
     with allure.step(
@@ -1000,59 +1070,256 @@ def test_399762(d_obj: AndroidDevice):
         GMS.sendSignal(Signal='TEGP_TrnsShftLvrPstnAuth_Inv', Value=0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='VSADP_VehSpdAvgDrvnAuth', Value=0.0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='VSADP_VehSpdAvgDrvnAuth_Inv', Value=0, Type='Signal', Mode='HS')
+        d_obj.click(text="Teen Driver")
+        d_obj.click(text="Continue")
+        d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+        d_obj.click(resourceId=element.enter)
+        d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+        GMS.sendSignal(Signal='TeenDrvRsp', Value=2, Type='Signal', Mode='HS')
+        d_obj.click(resourceId=element.enter)
+        d_obj.click(xpath=element.ok)
+        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
 
 
 @allure.title(
     "To verify Speed Warning Switch On and Off in Teen Driver Settings Screen")
 def test_413361(d_obj: AndroidDevice):
     with allure.step('1. Navigate to Teen Driver Menu'):
-        d_obj.click(text="Settings")
-    with allure.step('2. Send    TeenDriverOverspeedWarningCustomizationSettingAvailable / TnDrvOvSpdWrnCstStAvl signal - True'):
-        GMS.sendSignal(Signal='TnDrvOvSpdWrnCstStAvl', Value=1, Type='Signal', Mode='HS')
-    with allure.step('3. Send TeenDriverOverspeedWarningCustomizationCurrentSettingValue / TDOSWCCSV_CrSetVal Signal - OFF'):
-        GMS.sendSignal(Signal='TDOSWCCSV_CrSetVal', Value=1, Type='Signal', Mode='HS')
-    with allure.step('4. Select Teen Driver'):
-        d_obj.click(text="Teen Driver")
-    with allure.step('5. Select Continue'):
+        d_obj.click(text="Settings").click(text="Vehicle").click(text="Teen Driver")
         d_obj.click(text="Continue")
-    with allure.step('6. Enter a 4 digit PIN '):
         d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
-    with allure.step('7. Click Enter'):
         d_obj.click(resourceId=element.enter)
-    with allure.step('8. Confirm your 4 digit PIN'):
         d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
-    with allure.step('9. Send TeenDrvRsp Signal ==> 2=Teen_PIN_Updated'):
         GMS.sendSignal(Signal='TeenDrvRsp', Value=2, Type='Signal', Mode='HS')
         d_obj.click(resourceId=element.enter)
-    with allure.step('10. Click OK'):
         d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
-    with allure.step('11. Send TeenDrvReq Signal ==> 5=Check_for_Teen_Key'):
-        GMS.sendSignal(Signal='TeenDrvReq', Value=5, Type='Signal', Mode='HS')
-    with allure.step('12. Send TeenDrvRsp Signal ==> 7=Key_Detected_As_Teen_Key'):
-        GMS.sendSignal(Signal='TeenDrvRsp', Value=7, Type='Signal', Mode='HS')
-    with allure.step('13. Click Add/Remove Teen Keys'):
-        d_obj.click(xpath=element.add_or_remove_teen_driver_keys)
-        d_obj.assert_exist(text="Remove Teen Driver Key?")
-    with allure.step('14. Send TeenDrvReq Signal ==> 4=Clear_Teen_Key'):
-        GMS.sendSignal(Signal='TeenDrvReq', Value=4, Type='Signal', Mode='HS')
-    with allure.step('15. Send TeenDrvRsp Signal ==> 6=Key_Not_Present'):
-        GMS.sendSignal(Signal='TeenDrvRsp', Value=6, Type='Signal', Mode='HS')
-    with allure.step('16. Click Remove Button'):
-        d_obj.click(text="Remove")
-        time.sleep(2)
-        d_obj.assert_exist(text="Key Not Detected")
     with allure.step(
-            '17. Send below signals AutoTransGrDispdVal set to 3 = N AutoTransGrDispdVal_Inv set to False VSADP_VehSpdAvgDrvnAuth set to 0.0 VSADP_VehSpdAvgDrvnAuth_Inv set to False'):
-        GMS.sendSignal(Signal='TEGP_TrnsShftLvrPstnAuth', Value=3, Type='Signal', Mode='HS')
-        GMS.sendSignal(Signal='TEGP_TrnsShftLvrPstnAuth_Inv', Value=0, Type='Signal', Mode='HS')
-        GMS.sendSignal(Signal='VSADP_VehSpdAvgDrvnAuth', Value=10.0, Type='Signal', Mode='HS')
-        GMS.sendSignal(Signal='VSADP_VehSpdAvgDrvnAuth_Inv', Value=0, Type='Signal', Mode='HS')
-    with allure.step('18. Wait 30 seconds'):
-        time.sleep(30)
+            '2. Send    TeenDriverOverspeedWarningCustomizationSettingAvailable / TnDrvOvSpdWrnCstStAvl signal - True'):
+        GMS.sendSignal(Signal='TnDrvOvSpdWrnCstStAvl', Value=1, Type='Signal', Mode='HS')
     with allure.step(
-            '19. Send below signal to Reset VSADP_VehSpdAvgDrvnAuth set to 0.0 VSADP_VehSpdAvgDrvnAuth_Inv set to False AutoTransGrDispdVal set to 1 = P AutoTransGrDispdVal_Inv set to False'):
-        GMS.sendSignal(Signal='TEGP_TrnsShftLvrPstnAuth', Value=1, Type='Signal', Mode='HS')
-        GMS.sendSignal(Signal='TEGP_TrnsShftLvrPstnAuth_Inv', Value=0, Type='Signal', Mode='HS')
-        GMS.sendSignal(Signal='VSADP_VehSpdAvgDrvnAuth', Value=0.0, Type='Signal', Mode='HS')
-        GMS.sendSignal(Signal='VSADP_VehSpdAvgDrvnAuth_Inv', Value=0, Type='Signal', Mode='HS')
+            '3. Send TeenDriverOverspeedWarningCustomizationCurrentSettingValue / TDOSWCCSV_CrSetVal Signal - OFF'):
+        GMS.sendSignal(Signal='TDOSWCCSV_CrSetVal', Value=1, Type='Signal', Mode='HS')
+    with allure.step('5.Click Teen driver settings option'):
+        d_obj.click(text="Teen Driver Settings")
+        assert d_obj(text="Speed Warning").offset(x=0.58).checked == False, "assert switch off failed"
+    with allure.step('6. Switch ON Speed Warning in Teen Driver Settings Screen'):
+        d_obj(text="Speed Warning").offset(x=0.58).click()
+    with allure.step(
+            '7.Send TeenDriverOverspeedWarningCustomizationCurrentSettingValue / TDOSWCCSV_CrSetVal Signal - ON'):
+        GMS.sendSignal(Signal='TDOSWCCSV_CrSetVal', Value=2, Type='Signal', Mode='HS')
+        assert d_obj(text="Speed Warning").offset(x=0.58).checked == True, "assert switch on failed"
+    with allure.step('8. Click Speed Warning'):
+        d_obj(text="Speed Warning").click()
+        assert d_obj(text="Speed Warning").offset(x=0.4).checked == True, "assert switch on failed"
+    with allure.step('9. Click back'):
+        d_obj.click(resourceId=element.back)
+    with allure.step(
+            '10. Send       TeenDriverOverspeedWarningCustomizationCurrentSettingValue / TDOSWCCSV_CrSetVal Signal - OFF'):
+        GMS.sendSignal(Signal='TDOSWCCSV_CrSetVal', Value=1, Type='Signal', Mode='HS')
+    with allure.step('11. Switch OFF Speed Warning in Teen Driver Settings Screen'):
+        # 点击返回键后自带关闭开关
+        if d_obj(text="Speed Warning").offset(x=0.4).checked:
+            d_obj(text="Speed Warning").offset(x=0.58).click()
+        assert d_obj(text="Speed Warning").offset(x=0.58).checked == False, "assert switch off failed"
+    with allure.step('12.Click Speed Warning'):
+        d_obj(text="Speed Warning").click()
+        assert d_obj(text="Speed Warning").offset(x=0.4).checked == False, "assert switch off failed"
+
+
+@allure.title(
+    "To verify Increment and Decrement  button in Speed Warning Tertiary Screen when Speed Warning is Switched ON (MPH)")
+def test_413364(d_obj: AndroidDevice):
+    with allure.step('1. Navigate to Teen Driver Menu'):
+        d_obj.click(text="Settings").click(text="Vehicle").click(text="Teen Driver")
+        d_obj.click(text="Continue")
+        d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+        d_obj.click(resourceId=element.enter)
+        d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+        GMS.sendSignal(Signal='TeenDrvRsp', Value=2, Type='Signal', Mode='HS')
+        d_obj.click(resourceId=element.enter)
+        d_obj.click(xpath=element.ok)
+    with allure.step(
+            '2. Send TeenDriverOverspeedWarningCustomizationSettingAvailable / TnDrvOvSpdWrnCstStAvl   signal - True'):
+        GMS.sendSignal(Signal='TnDrvOvSpdWrnCstStAvl', Value=1, Type='Signal', Mode='HS')
+    with allure.step(
+            '3. Send      TeenDriverOverspeedWarningCustomizationCurrentSettingValue / TDOSWCCSV_CrSetVal Signal - ON'):
+        GMS.sendSignal(Signal='TDOSWCCSV_CrSetVal', Value=2, Type='Signal', Mode='HS')
+    with allure.step(
+            '4. SendDisplay Measurement System Extended / DispMeasSysExtnd - 1 (for miles per hour)'):
+        GMS.sendSignal(Signal='DispMeasSysExtnd', Value=1, Type='Signal', Mode='HS')
+    with allure.step('5.Click Teen driver settings optionDispMeasSysExtnd'):
+        d_obj.click(text="Teen Driver Settings")
+
+
+@allure.title(
+    "To verify Switching on and Switching off Audio Volume Limit option  in Teen Driver Menu")
+def test_423214(d_obj: AndroidDevice):
+    with allure.step('1. Open Settings Application '):
+        d_obj.click(text="Settings")
+    with allure.step('2. Select Vehicle'):
+        d_obj.click(text="Vehicle")
+    with allure.step('3. Send Teen Driver available signal'):
+        GMS.sendSignal(Signal='TeenDrvFtrAvl', Value=1, Type='Signal', Mode='HS')
+    with allure.step('4. Select Teen Driver'):
+        d_obj.click(text="Teen Driver")
+        d_obj.click(text="Continue")
+    with allure.step('5. Enter your 4 digit Teen Driver PIN'):
+        d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+        d_obj.click(resourceId=element.enter)
+    with allure.step('6. Confirm your 4 digit Teen Driver PIN'):
+        d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+    with allure.step('7. Send TEEN PIN UPDATED signal'):
+        GMS.sendSignal(Signal='TeenDrvRsp', Value=2, Type='Signal', Mode='HS')
+    with allure.step('8. Click Unlock'):
+        d_obj.click(resourceId=element.enter)
+        d_obj.click(xpath=element.ok)
+    with allure.step('9. Click Audio Volume Limit option'):
+        d_obj.click(text="Teen Driver Settings")
+        assert d_obj(text="Audio Volume Limit").offset(x=0.58).checked == True, "assert switch on failed"
+        d_obj.click(text="Audio Volume Limit")
+        assert d_obj(text="Audio Volume Limit").offset(x=0.4).checked == True, "assert switch on failed"
+    with allure.step('10. Click Back'):
+        d_obj.click(resourceId=element.back)
+    with allure.step('11. Switch OFF the Audio Volume Limit option in Teen Driver Menu'):
+        d_obj(text="Audio Volume Limit").offset(x=0.58).click()
+        assert d_obj(text="Audio Volume Limit").offset(x=0.58).checked == False, "assert switch off failed"
+    with allure.step('12. Click Audio Volume Limit option'):
+        d_obj.click(text="Audio Volume Limit")
+        assert d_obj(text="Audio Volume Limit").offset(x=0.4).checked == False, "assert switch off failed"
+        assert d_obj(resourceId=element.btn_volume_increase).enabled == False, "assert btn increase off failed"
+        assert d_obj(resourceId=element.btn_volume_decrease).enabled == False, "assert btn decrease off failed"
+    with allure.step('13. Click Back'):
+        d_obj.click(resourceId=element.back)
+    with allure.step('14. Switch ON the Audio Volume Limit option in Teen Driver Menu'):
+        d_obj(text="Audio Volume Limit").offset(x=0.58).click()
+        assert d_obj(text="Audio Volume Limit").offset(x=0.58).checked == True, "assert switch on failed"
+    with allure.step('15. Click Audio Volume Limit option'):
+        d_obj.click(text="Audio Volume Limit")
+        assert d_obj(text="Audio Volume Limit").offset(x=0.4).checked == True, "assert switch on failed"
+        assert d_obj(resourceId=element.btn_volume_increase).enabled == True, "assert btn increase on failed"
+        assert d_obj(resourceId=element.btn_volume_decrease).enabled == True, "assert btn decrease on failed"
+    with allure.step('16. Switch OFF the Audio Volume Limit option in Tertiary Screen'):
+        d_obj(text="Audio Volume Limit").offset(x=0.4).click()
+        assert d_obj(text="Audio Volume Limit").offset(x=0.4).checked == False, "assert switch off failed"
+        assert d_obj(resourceId=element.btn_volume_increase).enabled == False, "assert btn increase off failed"
+        assert d_obj(resourceId=element.btn_volume_decrease).enabled == False, "assert btn decrease off failed"
+    with allure.step('17. Click Back'):
+        d_obj.click(resourceId=element.back)
+    with allure.step('18. Click Audio Volume Limit option'):
+        d_obj.click(text="Audio Volume Limit")
+        assert d_obj(text="Audio Volume Limit").offset(x=0.4).checked == False, "assert switch off failed"
+        assert d_obj(resourceId=element.btn_volume_increase).enabled == False, "assert btn increase off failed"
+        assert d_obj(resourceId=element.btn_volume_decrease).enabled == False, "assert btn decrease off failed"
+    with allure.step('19. Switch ON the Audio Volume Limit option in Tertiary Screen'):
+        d_obj(text="Audio Volume Limit").offset(x=0.4).click()
+        assert d_obj(text="Audio Volume Limit").offset(x=0.4).checked == True, "assert switch on failed"
+        assert d_obj(resourceId=element.btn_volume_increase).enabled == True, "assert btn increase on failed"
+        assert d_obj(resourceId=element.btn_volume_decrease).enabled == True, "assert btn decrease on failed"
+    with allure.step('20. Click Back'):
+        d_obj.click(resourceId=element.back)
+        assert d_obj(text="Audio Volume Limit").offset(x=0.58).checked == True, "assert switch on failed"
+
+
+@allure.title(
+    "To verify the increase and decrease volume button in Audio Limit Tertiary Screen")
+def test_423215(d_obj: AndroidDevice):
+    with allure.step('1. Open Settings Application '):
+        d_obj.click(text="Settings")
+    with allure.step('2. Select Vehicle'):
+        d_obj.click(text="Vehicle")
+    with allure.step('3. Send Teen Driver available signal'):
+        GMS.sendSignal(Signal='TeenDrvFtrAvl', Value=1, Type='Signal', Mode='HS')
+    with allure.step('4. Select Teen Driver'):
+        d_obj.click(text="Teen Driver")
+        d_obj.click(text="Continue")
+    with allure.step('5. Enter your 4 digit Teen Driver PIN'):
+        d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+        d_obj.click(resourceId=element.enter)
+    with allure.step('6. Confirm your 4 digit Teen Driver PIN'):
+        d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+    with allure.step('7. Send TEEN PIN UPDATED signal'):
+        GMS.sendSignal(Signal='TeenDrvRsp', Value=2, Type='Signal', Mode='HS')
+    with allure.step('8. Click Unlock'):
+        d_obj.click(resourceId=element.enter)
+        d_obj.click(xpath=element.ok)
+
+    with allure.step('9. Click Audio Volume Limit option'):
+        d_obj.click(text="Teen Driver Settings")
+        assert d_obj(text="Audio Volume Limit").offset(x=0.58).checked == True, "assert switch on failed"
+        d_obj.click(text="Audio Volume Limit")
+        assert d_obj(resourceId=element.btn_volume_increase).enabled == True, "assert btn increase on failed"
+        assert d_obj(resourceId=element.btn_volume_decrease).enabled == True, "assert btn decrease on failed"
+
+    with allure.step('10. Click the Volume Increase button once'):
+        d_obj(resourceId=element.btn_volume_increase).click()
+        assert d_obj(resourceId=element.btn_volume_increase).enabled == True, "assert btn increase on failed"
+        assert d_obj(resourceId=element.btn_volume_decrease).enabled == True, "assert btn decrease on failed"
+    with allure.step('11. Click Volume Decrease button once'):
+        d_obj(resourceId=element.btn_volume_decrease).click()
+        assert d_obj(resourceId=element.btn_volume_increase).enabled == True, "assert btn increase on failed"
+        assert d_obj(resourceId=element.btn_volume_decrease).enabled == True, "assert btn decrease on failed"
+    with allure.step('12. Click the Volume Increase button till max volume is reached'):
+        while d_obj(resourceId=element.btn_volume_increase).enabled:
+            d_obj(resourceId=element.btn_volume_increase).click()
+        assert d_obj(resourceId=element.btn_volume_increase).enabled == False, "assert btn increase off failed"
+        assert d_obj(resourceId=element.btn_volume_decrease).enabled == True, "assert btn decrease on failed"
+    with allure.step('13. Click Volume Decrease button once'):
+        d_obj(resourceId=element.btn_volume_decrease).click()
+        assert d_obj(resourceId=element.btn_volume_increase).enabled == True, "assert btn increase on failed"
+        assert d_obj(resourceId=element.btn_volume_decrease).enabled == True, "assert btn decrease on failed"
+
+
+@allure.title(
+    "To verify Teen Driver volume snack bar with default Audio Volume Limit setting in Teen Driver")
+@pytest.mark.usefixtures("driver_seat_belts_are_bucked_up")
+def test_424369(d_obj: AndroidDevice):
+    with allure.step('1. Send Teen Driver Active Authenticated / TDAP_TeenDrvrActvAuth Signal'):
+        GMS.sendSignal(Signal='TDAP_TeenDrvrActvAuth', Value=1, Type='Signal', Mode='HS')
+    with allure.step('2. Increase the volume by 1 level'):
+        d_obj.adb_fp.adb.shell("input keyevent 25")
+    with allure.step('3. Decrease the volume by 1 level'):
+        d_obj.adb_fp.adb.shell("input keyevent 24")
+    with allure.step('4. Decrease the volume till volume level reach 0'):
+        d_obj.click(text="Teen Driver")
+        d_obj.click(text="Continue")
+
+
+@allure.title(
+    'To verify status of radio button in "Speed Limiter" tertiary screen is matched with the "Speed Limiter" switch under Teen Driver Settings')
+def test_427292(d_obj: AndroidDevice):
+    """
+    step:
+    1. Navigate to Teen driver
+    2. Send TeenDriverSpeedLimitCustomizationSettingAvailable / TnDrvSpdLmtCstStAvl signal - True
+    3. Send TeenDriverSpeedLimitCustomizationCurrentSettingValue / TDSLCCSV_CrSetVal - OFF
+    4. Click Teen driver settings option
+    5. Click the Speed Limiter option
+    6. Turn ON the Speed Limiter tertiary option
+    7. Send TeenDriverSpeedLimitCustomizationCurrentSettingValue / TDSLCCSV_CrSetVal - ON
+    8. Navigate back to Teen Driver Settings
+    9. Click the Speed Limiter option
+    expect:
+    5. Speed Limiter tertiary option is TURNED OFF
+    8. Speed Limiter Switch is TURNED ON
+    9. Speed Limiter tertiary option is TURNED ON
+    """
+    d_obj.click(text="Settings").click(text="Vehicle").click(text="Teen Driver")
+    d_obj.click(text="Continue")
+    d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+    d_obj.click(resourceId=element.enter)
+    d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
+    GMS.sendSignal(Signal='TeenDrvRsp', Value=2, Type='Signal', Mode='HS')
+    d_obj.click(resourceId=element.enter)
+    d_obj.click(xpath=element.ok)
+    GMS.sendSignal(Signal='TnDrvSpdLmtCstStAvl', Value=1, Type='Signal', Mode='HS')
+    GMS.sendSignal(Signal='TDSLCCSV_CrSetVal', Value=1, Type='Signal', Mode='HS')
+    d_obj.click(text="Teen Driver Settings")
+    d_obj.click(text="Speed Limiter").click()
+    assert d_obj(text="Off").offset(x=0.12).checked == True, "assert switch off failed"
+    assert d_obj(text="On").offset(x=0.12).checked == False, "assert switch on failed"
+    GMS.sendSignal(Signal='TDSLCCSV_CrSetVal', Value=2, Type='Signal', Mode='HS')
+    d_obj.click(resourceId=element.back)
+    assert d_obj(text="Speed Limiter").offset(x=0.58).checked == True, "assert switch on failed"
+    d_obj.click(text="Speed Limiter").click()
+    assert d_obj(text="Off").offset(x=0.12).checked == False, "assert switch off failed"
+    assert d_obj(text="On").offset(x=0.12).checked == True, "assert switch on failed"

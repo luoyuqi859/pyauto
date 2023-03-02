@@ -157,7 +157,7 @@ class Path(str):
 
     def mkdir(self, raise_exception=False):
         try:
-            os.makedirs(self.parent)
+            os.makedirs(self)
         except FileExistsError:
             if raise_exception:
                 raise

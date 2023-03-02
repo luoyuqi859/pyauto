@@ -5,6 +5,7 @@
 @File: model
 @Created: 2023/2/17 17:24
 """
+import threading
 from dataclasses import dataclass
 from enum import Enum
 from typing import Text, Union
@@ -54,3 +55,15 @@ class TestMetrics:
     total: int
     pass_rate: float
     time: Text
+
+
+# 记录运行时需要共享的全局变量
+class RuntimeData():
+    # 记录pid变更前的pid
+    old_pid = None
+    packages = None
+    package_save_path = None
+    start_time = None
+    exit_event = threading.Event()
+    top_dir = None
+    config_dic = {}

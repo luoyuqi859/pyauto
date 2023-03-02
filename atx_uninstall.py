@@ -2,8 +2,8 @@
 # -*- ecoding: utf-8 -*-
 """
 @Author: Luo Yuqi
-@File: __init__.py
-@Created: 2023/2/17 16:09
+@File: atx_uninstall
+@Created: 2023/3/2 17:26
 """
 from uiauto.android.adb import ADB
 

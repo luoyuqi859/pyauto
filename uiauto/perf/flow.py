@@ -25,7 +25,7 @@ class TrafficUtils:
         _cmd = 'dumpsys package %s' % pkg
         out = device.adb.run_shell_cmd(_cmd)
         lines = out.replace('\r', '').splitlines()
-        logger.debug("line length：" + str(len(lines)))
+        # logger.debug("line length：" + str(len(lines)))
         if len(lines) > 0:
             for line in lines:
                 if "Unable to find package:" in line:
@@ -34,7 +34,7 @@ class TrafficUtils:
             adb_result = re.findall(u'userId=(\d+)', out)
             if len(adb_result) > 0:
                 uid = adb_result[0]
-                logger.debug("getUid for pck: " + pkg + ", UID: " + uid)
+                # logger.debug("getUid for pck: " + pkg + ", UID: " + uid)
         else:
             logger.error(" trafficstat: Unable to find package : " + pkg)
         return uid
@@ -92,7 +92,7 @@ class TrafficSnapshot(object):
                         self.bg_bytes += int(tart_list[5]) + int(tart_list[7])
                     elif int(tart_list[4]) == 1:  # 统计前台流量
                         self.fg_bytes += int(tart_list[5]) + int(tart_list[7])
-        logger.debug(" total uid  bytes : " + str(self.total_uid_bytes))
+        # logger.debug(" total uid  bytes : " + str(self.total_uid_bytes))
 
     def __repr__(self):
         return "TrafficSnapshot, " + "package: " + str(self.packagename) + " uid bytes: " + str(
@@ -161,7 +161,7 @@ class NetDevInfo(object):
                 self.wifi_rx = int(items[1])
                 self.wifi_tx = int(items[9])
                 self.wifi_total = self.wifi_rx + self.wifi_tx
-                logger.debug("wifi_rx : " + items[1] + " wifi_tx : " + items[9] + " total wifi:" + str(self.wifi_total))
+                # logger.debug("wifi_rx : " + items[1] + " wifi_tx : " + items[9] + " total wifi:" + str(self.wifi_total))
                 # 移动 3 4 5G 流量
                 # rmnet0: 362133448 298441 0 0 0 0 0 0 10641124 91012 0 0 0 0 0 0
             if "rmnet0:" in line:
@@ -169,8 +169,8 @@ class NetDevInfo(object):
                 self.mobile_rx = int(items[1])
                 self.mobile_tx = int(items[9])
                 self.mobile_total = self.wifi_rx + self.wifi_tx
-                logger.debug(
-                    "mobile_rx : " + items[1] + " mobile_tx : " + items[9] + " total mobile:" + str(self.mobile_total))
+                # logger.debug(
+                #     "mobile_rx : " + items[1] + " mobile_tx : " + items[9] + " total mobile:" + str(self.mobile_total))
             self.rx = self.wifi_rx + self.mobile_rx
             self.tx = self.wifi_tx + self.mobile_tx
             self.total = self.wifi_total + self.mobile_total
@@ -227,7 +227,7 @@ class TrafficCollecor(object):
         traffic_list_title = (
             "datetime", "packagename", "uid", "uid_total(KB)", "uid_total_packets", "rx(KB)", "rx_packets", "tx(KB)",
             "tx_packets", "fg(KB)", "bg(KB)", "lo(KB)")
-        traffic_file = os.path.join(self._path or settings.report_path, 'traffics_uid.csv')
+        traffic_file = os.path.join(self._path, 'traffics_uid.csv')
         try:
             with open(traffic_file, 'a+') as df:
                 csv.writer(df, lineterminator='\n').writerow(traffic_list_title)
@@ -260,7 +260,7 @@ class TrafficCollecor(object):
                                      traffic_snapshot.tx_uid_packets, TrafficUtils.byte2kb(traffic_snapshot.fg_bytes),
                                      TrafficUtils.byte2kb(traffic_snapshot.bg_bytes),
                                      TrafficUtils.byte2kb(traffic_snapshot.lo_uid_bytes)]
-                logger.debug(traffic_list_temp)
+                # logger.debug(traffic_list_temp)
                 if self.traffic_queue:
                     self.traffic_queue.put(traffic_list_temp)
 
@@ -293,7 +293,7 @@ class TrafficCollecor(object):
     def get_traffic_with_dev(self):
         end_time = time.time() + self._timeout
         traffic_title = ["datetime", "device_total(KB)", "device_receive(KB)", "device_transport(KB)"]
-        traffic_file = os.path.join(self._path or settings.report_path, 'traffic.csv')
+        traffic_file = os.path.join(self._path, 'traffic.csv')
         for i in range(0, len(self.packages)):
             traffic_title.extend(["package", "pid", "pid_rx(KB)", "pid_tx(KB)", "pid_total(KB)"])
         if len(self.packages) > 1:
@@ -317,7 +317,7 @@ class TrafficCollecor(object):
                     self.device_init_net = device_cur_net
                 device_grow = self.get_net_from_begin(self.device_init_net, device_cur_net)
                 collection_time = time.time()
-                logger.debug(" collection time in traffic is : " + str(collection_time))
+                # logger.debug(" collection time in traffic is : " + str(collection_time))
                 net_row = [collection_time, TrafficUtils.byte2kb(device_grow.total),
                            TrafficUtils.byte2kb(device_grow.rx),
                            TrafficUtils.byte2kb(device_grow.tx)]
@@ -350,7 +350,7 @@ class TrafficCollecor(object):
                             writer.writerow(net_row)
                     except RuntimeError as e:
                         logger.error(e)
-                logger.debug(net_row)
+                # logger.debug(net_row)
                 after = time.time()
                 time_consume = after - before
                 # 校准时间，由于执行命令行需要耗时，需要将这个损耗加上去
@@ -382,7 +382,7 @@ class TrafficCollecor(object):
             'bg': traffic_snapshot.bg_bytes,
             'lo': traffic_snapshot.lo_uid_bytes
         }
-        logger.debug(traffic_data_dic)
+        # logger.debug(traffic_data_dic)
         return traffic_data_dic
 
     def get_data_from_threadstart(self, traffic_snapshot):
@@ -428,7 +428,7 @@ class TrafficCollecor(object):
         else:
             traffic_snapshot.lo_uid_bytes = traffic_snapshot.lo_uid_bytes
 
-        logger.debug(traffic_snapshot)
+        # logger.debug(traffic_snapshot)
         return traffic_snapshot
 
     def get_net_from_begin(self, begin_net_info, current_net_info):
@@ -479,7 +479,7 @@ class TrafficMonitor(object):
 
 
 if __name__ == "__main__":
-    monitor = TrafficMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packages=["com.gm.teenmode"],
+    monitor = TrafficMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packages=["com.gm.hmi.settings"],
                              interval=2)
     monitor.start(timeoperator.strftime_now("%Y_%m_%d_%H_%M_%S"))
     time.sleep(20)

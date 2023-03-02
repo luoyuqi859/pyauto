@@ -6,11 +6,14 @@
 @Created: 2023/2/25
 """
 import re
+from collections import namedtuple
 from datetime import datetime
 
 from adbutils import AdbError
 
+from conf import settings
 from utils import net
+from utils.errors import UiaError
 
 
 class App:
@@ -45,11 +48,11 @@ class App:
 
         time_regex = r"[-\d]+\s+[:\d]+"
         m = re.compile(f"firstInstallTime=({time_regex})").search(output)
-        first_install_time = datetime.strptime(m.group(1), "'%Y-%m-%d %H:%M:%S") if m else None
+        first_install_time = datetime.strptime(m.group(1), settings.DEFAULT_TIME_FORMAT) if m else None
 
         m = re.compile(f"lastUpdateTime=({time_regex})").search(output)
         last_update_time = datetime.strptime(m.group(1).strip(),
-                                             "%Y-%m-%d %H:%M:%S") if m else None
+                                             settings.DEFAULT_TIME_FORMAT) if m else None
 
         return dict(version_name=version_name,
                     version_code=version_code,
@@ -182,3 +185,25 @@ class App:
         apps = getattr(self.device, '_running_apps', [])
         for pkg in apps:
             self.device.app(pkg).stop()
+
+
+class UiaApp(App):
+    def get_info(self, pkg_name=None):
+        """
+        获取应用信息，包括 main_activity、label、version_name、version_code、size
+        :param pkg_name: 应用包名
+        :return:
+        """
+        pkg_name = pkg_name or self.package
+        resp = self.device.request("get", f"/packages/{pkg_name}/info")
+        resp.raise_for_status()
+        resp = resp.json()
+        if not resp.get('success'):
+            raise UiaError(resp.get('description', 'unknown'))
+        AppInfo = namedtuple('AppInfo', ('main_activity', 'label', 'version_name', 'version_code', 'size'))
+        data = resp.get('data')
+        return AppInfo(main_activity=data.get('mainActivity'),
+                       label=data.get('label'),
+                       version_name=data.get('versionName'),
+                       version_code=data.get('versionCode'),
+                       size=data.get('size'))

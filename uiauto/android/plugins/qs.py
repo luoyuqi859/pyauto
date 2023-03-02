@@ -26,5 +26,5 @@ class QuickSettings:
         self.device.shell(f'settings put secure sysui_qs_tiles "{tiles_arg}"')
 
     def open(self):
-        self.device.open_quick_settings()
+        self.device.d.open_quick_settings()
         return self

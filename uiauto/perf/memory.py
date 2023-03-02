@@ -104,7 +104,7 @@ class MemInfoDevice:
         match = self.RE_USED_MEMORY.search(self.dump)
         if match:
             self.usedmem = round(float(match.group(1).replace(",", "")) / 1024, 2)
-        logger.debug(f"total mem:{self.totalmem};used mem:{self.usedmem};free mem:{self.freemem}")
+        # logger.debug(f"total mem:{self.totalmem};used mem:{self.usedmem};free mem:{self.freemem}")
         for package in self.packages:
             # 可能子进程没有启动，默认填空值 方便格式上统一处理
             mem_dic = {"package": package, "pid": "", "pss": ""}
@@ -124,7 +124,7 @@ class MemInfoDevice:
                     self.total_pss = self.total_pss + pss
                     break
             self.package_pid_pss_list.append(mem_dic)
-            logger.debug(mem_dic)
+            # logger.debug(mem_dic)
 
 
 class MemInfoPackageCollector:
@@ -162,7 +162,7 @@ class MemInfoPackageCollector:
         :return:
         """
         out = self.device.adb.run_shell_cmd('dumpsys meminfo')
-        meminfo_file = os.path.join(self._path or settings.report_path, 'dumpsys_meminfo.txt')
+        meminfo_file = os.path.join(self._path, 'dumpsys_meminfo.txt')
         with open(meminfo_file, "a+", encoding="utf-8") as writer:
             writer.write(timeoperator.strftime_now("%Y-%m-%d %H-%M-%S") + " dumpsys meminfo info:\n")
             writer.write(out + "\n\n")
@@ -178,7 +178,7 @@ class MemInfoPackageCollector:
         out = self.device.adb.run_shell_cmd('dumpsys meminfo %s' % process)
         # Win文件名中不能有冒号:
         process_rename = process.replace(":", "_")
-        meminfo_file = os.path.join(self._path or settings.report_path, 'dumpsys_meminfo_%s.txt' % process_rename)
+        meminfo_file = os.path.join(self._path, 'dumpsys_meminfo_%s.txt' % process_rename)
         with open(meminfo_file, "a+", encoding="utf-8") as writer:
             writer.write(timeoperator.strftime_now("%Y-%m-%d %H-%M-%S") + " dumpsys meminfo package info:\n")
             if out:
@@ -196,11 +196,11 @@ class MemInfoPackageCollector:
             pid_list_titile.extend(["package", "pid"])
         if len(self.packages) > 1:
             mem_list_titile.append("total_pss(MB)")
-        mem_file = os.path.join(self._path or settings.report_path, 'meminfo.csv')
-        pid_file = os.path.join(self._path or settings.report_path, 'pid_change.csv')
+        mem_file = os.path.join(self._path, 'meminfo.csv')
+        pid_file = os.path.join(self._path, 'pid_change.csv')
         for package in self.packages:
             name = package.split(".")[-1].replace(":", "_")
-            pss_detail_file = os.path.join(self._path or settings.report_path, f'pss_{name}.csv')
+            pss_detail_file = os.path.join(self._path, f'pss.csv')
             with open(pss_detail_file, 'a+', encoding="utf-8") as df:
                 csv.writer(df, lineterminator='\n').writerow(pss_detail_titile)
         try:
@@ -218,9 +218,10 @@ class MemInfoPackageCollector:
         old_package_pid_pss_list = []
         dumpsys_mem_times = 0
         hprof_path = "/data/local/tmp"
-        self.device.adb.run_shell_cmd("mkdir " + hprof_path)
+        if not self.device.adb.path(hprof_path).exists:
+            self.device.adb.run_shell_cmd("mkdir " + hprof_path)
         # sdcard 卡目录下dump需要打开这个开关
-        self.device.adb.run_shell_cmd("setenforce 0")
+        # self.device.adb.run_shell_cmd("setenforce 0")
         first_dump = True
         while not self._stop_event.is_set() and time.time() < end_time:
             try:
@@ -233,7 +234,7 @@ class MemInfoPackageCollector:
                         logger.error("package total pss is 0:%s" % package)
                         continue
                     name = package.split(".")[-1].replace(":", "_")
-                    pss_detail_file = os.path.join(self._path or settings.report_path, f'pss_{name}.csv')
+                    pss_detail_file = os.path.join(self._path, f'pss.csv')
                     pss_detail_list = [
                         timeoperator.strftime_now("%Y-%m-%d %H-%M-%S", collection_time),
                         package,
@@ -310,8 +311,8 @@ class MemInfoPackageCollector:
                             with open(pid_file, 'a+', encoding="utf-8") as pid_writer:
                                 writer_p = csv.writer(pid_writer, lineterminator='\n')
                                 writer_p.writerow(pid_list)
-                                logger.debug("write to file:" + pid_file)
-                                logger.debug(pid_list)
+                                # logger.debug("write to file:" + pid_file)
+                                # logger.debug(pid_list)
                         except RuntimeError as e:
                             logger.error(e)
                     if len(self.packages) > 1:
@@ -367,7 +368,7 @@ class MemMonitor:
 
 
 if __name__ == "__main__":
-    monitor = MemMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packages=["com.baidu.tieba"],
+    monitor = MemMonitor(path=settings.root_path / "uiauto" / "perf" / "record", packages=["com.gm.hmi.settings"],
                          interval=5)
     monitor.start(timeoperator.strftime_now("%Y_%m_%d_%H_%M_%S"))
     time.sleep(30)

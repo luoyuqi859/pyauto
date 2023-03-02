@@ -99,7 +99,7 @@ class AdbRotation(_BaseRotation):
 class UiaRotation(_BaseRotation):
 
     def _set_direction(self, direction='natural'):
-        self.device.jsonrpc.setOrientation(direction)
+        self.device.d.jsonrpc.setOrientation(direction)
 
     def left(self):
         self._set_direction('left')
@@ -114,7 +114,7 @@ class UiaRotation(_BaseRotation):
         self._set_direction('upsidedown')
 
     def enable(self, enabled=False):
-        self.device.jsonrpc.freezeRotation(not enabled)
+        self.device.d.jsonrpc.freezeRotation(not enabled)
         logger.success(f'{"enable" if enabled else "disable"} rotation')
 
     def disable(self):
