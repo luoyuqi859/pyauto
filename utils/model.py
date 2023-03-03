@@ -24,6 +24,7 @@ class Serial(BaseModel):
 class Pref(BaseModel):
     switch: bool
     package: Union[Text, None]
+    frequency: int
 
 
 class NotificationType(Enum):
@@ -55,15 +56,4 @@ class TestMetrics:
     total: int
     pass_rate: float
     time: Text
-
-
-# 记录运行时需要共享的全局变量
-class RuntimeData():
-    # 记录pid变更前的pid
-    old_pid = None
-    packages = None
-    package_save_path = None
-    start_time = None
-    exit_event = threading.Event()
-    top_dir = None
-    config_dic = {}
+    retry: int

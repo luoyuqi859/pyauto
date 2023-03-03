@@ -124,6 +124,14 @@ class FeiShuTalkChatBot:
                             }],  # 损坏用例数
                             [{
                                 "tag": "text",
+                                "text": "重 测 用 例 数 : "
+                            },
+                                {
+                                    "tag": "text",
+                                    "text": f"{self.metrics.retry}"
+                                }],  # 损坏用例数
+                            [{
+                                "tag": "text",
                                 "text": "成 功 率 : "
                             },
                                 {

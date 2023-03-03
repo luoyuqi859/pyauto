@@ -14,7 +14,8 @@
 * excel表格收集测试失败用例
 * allure报告失败截图
 * weditor辅助元素信息查找
-* 测试对象性能监控, memory,logcat,fps,cpu,thread_num (需校验是否是开发需要)
+* 测试对象性能监控, memory,logcat,fps,cpu,thread_num
+* 增加minicap对sdk30,31,32的支持，加快截图速度
 
 ## 目录结构
     ├── conf                         // 配置相关目录

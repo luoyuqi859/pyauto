@@ -11,16 +11,17 @@ import allure
 import pytest
 
 from conf import settings
-from uiauto import uninstall_atx
 from uiauto.android.device import AndroidDevice, connect
 from uiauto.perf.cpu import CpuMonitor
 from uiauto.perf.flow import TrafficMonitor
 from uiauto.perf.fps import FPSMonitor
-from uiauto.perf.logcat import LogcatMonitor
+from uiauto.perf.logcat import LogcatMonitor, LogcatTask
 from uiauto.perf.memory import MemMonitor
+from uiauto.perf.monitors import monitors
 from uiauto.perf.power import PowerMonitor
 from uiauto.perf.pref_data_fun import PrefDataFun
 from uiauto.perf.thread_num import ThreadNumMonitor
+from uiauto.task.pool import task_pool
 from utils.log import logger
 from utils import config
 from utils.time_fun import timeoperator
@@ -113,14 +114,22 @@ def d_obj():
     u2 = connect()
     d = AndroidDevice(device=u2)
     d.minicap.install_minicap()
-    return d
+    yield d
+    # 调试过程中可以注释删除ATX功能
+    uninstall_atx(d)
 
 
-# @pytest.fixture(scope="session", params=None, autouse=True, ids=None, name=None)
-# def uninstall():
-#     """测试完毕卸载ATX"""
-#     yield
-
+def uninstall_atx(d_obj: AndroidDevice):
+    d_obj.adb_fp.adb.shell("/data/local/tmp/atx-agent server --stop")
+    d_obj.adb_fp.adb.shell("rm /data/local/tmp/atx-agent")
+    logger.info("atx-agent stopped and removed")
+    d_obj.adb_fp.adb.shell("rm /data/local/tmp/minicap")
+    d_obj.adb_fp.adb.shell("rm /data/local/tmp/minicap.so")
+    d_obj.adb_fp.adb.shell("rm /data/local/tmp/minitouch")
+    logger.info("minicap, minitouch removed")
+    d_obj.adb_fp.adb.shell("pm uninstall com.github.uiautomator")
+    d_obj.adb_fp.adb.shell("pm uninstall com.github.uiautomator.test")
+    logger.info("com.github.uiautomator uninstalled, all done !!!")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -132,35 +141,9 @@ def performance(d_obj):
     logger.info(d_obj.d.info)
     logger.info("初始化设备成功")
     if config.perf.switch:
-        settings.perf_path.mkdir()
-        app = config.perf.package
-        logger.info(f"即将开启设备监控,app: {app}")
-        frequency = 5
-        t = settings.current_time
-        cpu_monitor = CpuMonitor(packages=[app], interval=frequency, path=settings.perf_path)
-        logcat_monitor = LogcatMonitor(path=settings.perf_path)
-        # traffic_monitor = TrafficMonitor(packages=[app], interval=frequency, path=settings.perf_path)
-        fps_monitor = FPSMonitor(package_name=app, frequency=frequency, path=settings.perf_path)
-        mem_monitor = MemMonitor(packages=[app], interval=frequency, path=settings.perf_path)
-        # power_monitor = PowerMonitor(interval=frequency, path=settings.perf_path)
-        thread_num_monitor = ThreadNumMonitor(packagename=app, interval=frequency, path=settings.perf_path)
-
-        cpu_monitor.start(t)
-        # traffic_monitor.start(t)
-        fps_monitor.start(t)
-        mem_monitor.start(t)
-        # power_monitor.start(t)
-        thread_num_monitor.start(t)
-        logcat_monitor.start(t)\
-
+        monitors.run()
         yield
-        cpu_monitor.stop()
-        # traffic_monitor.stop()
-        fps_monitor.stop()
-        mem_monitor.stop()
-        # power_monitor.stop()
-        thread_num_monitor.stop()
-        logcat_monitor.stop()
+        monitors.stop()
         try:
             d = PrefDataFun()
             d.all_handle(path=settings.perf_path)
@@ -168,9 +151,6 @@ def performance(d_obj):
             logger.error(e)
     else:
         logger.info("没有开启性能监控功能")
-    # 调试期间可以注释掉，最后批量执行建议最后删掉ATX
-    # yield
-    # uninstall_atx()
 
 # def pytest_report_teststatus(report, config):
 #     """自定义测试结果"""

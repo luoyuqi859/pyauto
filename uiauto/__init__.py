@@ -7,8 +7,6 @@
 """
 from uiauto.android.adb import ADB
 
-atx_agent_path = "/data/local/tmp/atx-agent"
-
 adb = ADB()
 
 

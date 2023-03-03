@@ -5,18 +5,16 @@
 @File: allure_fun
 @Created: 2023/2/17 16:32
 """
-import builtins
+
 import json
-import time
 
 from typing import List, Text
 
 import allure
-import pytest
 
 from utils.log import logger
 from utils.model import TestMetrics
-from utils.path_fun import get_all_files, Path
+from utils.path_fun import get_all_files
 from utils.time_fun import timeoperator
 
 
@@ -27,6 +25,7 @@ class AllureDataCollect:
         self.path = path
         self.data_path = self.path / "html" / "data" / "test-cases"
         self.summary_path = self.path / "html" / "widgets" / "summary.json"
+        self.retry_path = self.path / "html" / "widgets" / "retry-trend.json"
 
     def get_testcases(self) -> List:
         """ 获取所有 allure 报告中执行用例的情况"""
@@ -38,6 +37,12 @@ class AllureDataCollect:
                 files.append(date)
 
         return files
+
+    def get_retry_num(self):
+        with open(self.retry_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        retry_count = data[0].get('data').get('retry')
+        return retry_count
 
     def get_failed_case(self) -> List:
         """ 获取到所有失败的用例标题和用例代码路径"""
@@ -146,6 +151,7 @@ class AllureDataCollect:
             # 收集用例运行时长
             run_case_data['time'] = _time if run_case_data['total'] == 0 else timeoperator.s_to_hms(
                 _time['duration'] / 1000)
+            run_case_data['retry'] = self.get_retry_num()
             return TestMetrics(**run_case_data)
         except FileNotFoundError as exc:
             raise FileNotFoundError(
@@ -155,47 +161,47 @@ class AllureDataCollect:
                 "https://blog.csdn.net/weixin_43865008/article/details/124332793"
             ) from exc
 
-
-def compose(**kwargs):
-    """
-    将头部ALlure装饰器进行封装
-    可以采用：
-        feature='模块名称'
-        story='用户故事'
-        title='用例标题'
-        testcase='测试用例链接地址'
-        severity='用例等级(blocker、critical、normal、minor、trivial)'
-        link='链接'
-        testcase=("url", "xx测试用例")
-        issue=('bug地址', 'bug名称')
-    的方式入参数
-    :param kwargs:
-    :return:
-    """
-
-    def deco(f):
-        builtins.__dict__.update({'allure': allure})
-        # 失败重跑
-        if kwargs.get("reruns"):
-            f = pytest.mark.flaky(
-                reruns=kwargs.get("reruns", 2),  # 默认共执行2次
-                reruns_delay=kwargs.get("reruns_delay", 2)  # 默认等待5秒
-            )(f)
-            kwargs.pop("reruns")
-            if kwargs.get("reruns_delay"):
-                kwargs.pop("reruns_delay")
-        _kwargs = [('allure.' + key, value) for key, value in kwargs.items()]
-        for allurefunc, param in reversed(_kwargs):
-            if param:
-                if isinstance(param, tuple):
-                    f = eval(allurefunc)(*param)(f)
-                else:
-                    f = eval(allurefunc)(param)(f)
-            else:
-                f = eval(allurefunc)(f)
-        return f
-
-    return deco
+#
+# def compose(**kwargs):
+#     """
+#     将头部ALlure装饰器进行封装
+#     可以采用：
+#         feature='模块名称'
+#         story='用户故事'
+#         title='用例标题'
+#         testcase='测试用例链接地址'
+#         severity='用例等级(blocker、critical、normal、minor、trivial)'
+#         link='链接'
+#         testcase=("url", "xx测试用例")
+#         issue=('bug地址', 'bug名称')
+#     的方式入参数
+#     :param kwargs:
+#     :return:
+#     """
+#
+#     def deco(f):
+#         builtins.__dict__.update({'allure': allure})
+#         # 失败重跑
+#         if kwargs.get("reruns"):
+#             f = pytest.mark.flaky(
+#                 reruns=kwargs.get("reruns", 2),  # 默认共执行2次
+#                 reruns_delay=kwargs.get("reruns_delay", 2)  # 默认等待5秒
+#             )(f)
+#             kwargs.pop("reruns")
+#             if kwargs.get("reruns_delay"):
+#                 kwargs.pop("reruns_delay")
+#         _kwargs = [('allure.' + key, value) for key, value in kwargs.items()]
+#         for allurefunc, param in reversed(_kwargs):
+#             if param:
+#                 if isinstance(param, tuple):
+#                     f = eval(allurefunc)(*param)(f)
+#                 else:
+#                     f = eval(allurefunc)(param)(f)
+#             else:
+#                 f = eval(allurefunc)(f)
+#         return f
+#
+#     return deco
 
 
 def attach_text(body, name):
@@ -210,3 +216,9 @@ def attach_text(body, name):
         logger.info(f'存放文字 {name}:{body} 成功！')
     except Exception as e:
         logger.error(f'存放文字失败 {name}:{body}！:{e}')
+
+
+if __name__ == '__main__':
+    from conf import settings
+    allure_data = AllureDataCollect(settings.root_path / "report" / "GM" / "test")
+    f = allure_data.get_case_count()

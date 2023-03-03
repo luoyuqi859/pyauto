@@ -14,12 +14,11 @@ import traceback
 from conf import settings
 from uiauto.android.adb import ADB
 from utils.log import logger
-from utils.model import RuntimeData
 from utils.time_fun import timeoperator
 from utils.tools import TimeUtils, ms2s
 
 
-class LogcatCollector():
+class LogcatCollector(object):
 
     def __init__(self, device, path=None):
         self.device = device
@@ -43,7 +42,7 @@ class LogcatCollector():
             logger.warning(e)
         self._logcat_running = True  # logcat进程是否启动
         self._log_pipe = self.device.adb.run_shell_cmd('logcat -v threadtime ' + params, sync=False)
-        self._logcat_thread = threading.Thread(target=self._logcat_thread_func, args=[self._path, process_list, params])
+        self._logcat_thread = threading.Thread(target=self.logcat_thread_func, args=[self._path, process_list, params])
         self._logcat_thread.setDaemon(True)
         self._logcat_thread.start()
 
@@ -56,7 +55,7 @@ class LogcatCollector():
             if self._log_pipe.poll() == None:  # 判断logcat进程是否存在
                 self._log_pipe.terminate()
 
-    def _logcat_thread_func(self, save_dir, process_list, params=""):
+    def logcat_thread_func(self, save_dir, process_list, params=""):
         '''获取logcat线程
                 '''
         self.append_log_line_num = 0
@@ -128,7 +127,83 @@ class LogcatCollector():
                 logcat_f.write(log + "\n")
 
 
-class LogcatMonitor():
+class LaunchTime(object):
+
+    def __init__(self, deviceid, packagename=None, path=None):
+        # 列表的容积应该不用担心，与系统有一定关系，一般存几十万条数据没问题的
+        self.launch_list = [("datetime", "packagenme/activity", "this_time(s)", "total_time(s)", "launchtype")]
+        self.packagename = packagename
+        self.path = path
+
+    def handle_launchtime(self, log_line):
+        '''
+        这个方法在每次一个启动时间的log产生时回调
+        :param log_line:最近一条的log 内容
+        :param tag:启动的方式，是normal的启动，还是自定义方式的启动：fullydrawnlaunch
+        #如果监控到到fully drawn这样的log，则优先统计这种log，它表示了到起始界面自定义界面的启动时间
+        :return:void
+        '''
+        # logger.debug(log_line)
+        # 08-28 10:57:30.229 18882 19137 D IC5: CLogProducer == > code = 0, uuid = 4FE71E350379C64611CCD905938C10CA, eventType = performance, eventName = am_activity_launch_timeme, \
+        #    log_time = 2019-08-28 10:57:30.229, contextInfo = {"tag": "am_activity_launch_time", "start_time": "2019-08-28 10:57:16",
+        #                              "activity_name_original": "com.android.settings\/.FallbackHome",
+        #                              "activity_name": "com.android.settings#com.android.settings.FallbackHome",
+        #                              "this_time": "916", "total_time": "916", "start_type": "code_start",
+        #                              "gmt_create": "2019-08-28 10:57:16.742", "uploadtime": "2019-08-28 10:57:30.173",
+        #                              "boottime": "2019-08-28 10:57:18.502", "firstupload": "2019-08-28 10:57:25.733"}
+        ltag = ""
+        if ("am_activity_launch_time" in log_line or "am_activity_fully_drawn_time" in log_line):
+            # 最近增加的一条如果是启动时间相关的log，那么回调所有注册的_handle
+            if "am_activity_launch_time" in log_line:
+                ltag = "normal launch"
+            elif "am_activity_fully_drawn_time" in log_line:
+                ltag = "fullydrawn launch"
+            logger.debug("launchtime log:" + log_line)
+        if ltag:
+            content = []
+            timestamp = time.time()
+            content.append(TimeUtils.formatTimeStamp(timestamp))
+            temp_list = log_line.split()[-1].replace("[", "").replace("]", "").split(',')[2:5]
+            for i in range(len(temp_list)):
+                content.append(temp_list[i])
+            content.append(ltag)
+            logger.debug("Launch Info: " + str(content))
+            if len(content) == 5:
+                content = self.trim_value(content)
+                if content:
+                    self.update_launch_list(content, timestamp)
+
+    def trim_value(self, content):
+        try:
+            content[2] = ms2s(float(content[2]))  # 将this_time转化单位转化为s
+            content[3] = ms2s(float(content[3]))  # 将total_time 转化为s
+        except Exception as e:
+            logger.error(e)
+            return []
+        return content
+
+    def update_launch_list(self, content, timestamp):
+        # if self.packagename in content[1]:
+        self.launch_list.append(content)
+        tmp_file = os.path.join(self.path, 'launch_logcat.csv')
+        perf_data = {"task_id": "", 'launch_time': [], 'cpu': [], "mem": [],
+                     'traffic': [], "fluency": [], 'power': [], }
+        dic = {"time": timestamp,
+               "act_name": content[1],
+               "this_time": content[2],
+               "total_time": content[3],
+               "launch_type": content[4]}
+        perf_data['launch_time'].append(dic)
+        # perf_queue.put(perf_data)
+
+        with open(tmp_file, "a+", encoding="utf-8") as f:
+            csvwriter = csv.writer(f, lineterminator='\n')  # 这种方式可以去除csv的空行
+            logger.debug("save launchtime data to csv: " + str(self.launch_list))
+            csvwriter.writerows(self.launch_list)
+            del self.launch_list[:]
+
+
+class LogcatMonitor(object):
     '''logcat监控器
     '''
 
@@ -145,7 +220,7 @@ class LogcatMonitor():
         self.device_id = device_id
         self.device = ADB(device_id)  # 设备
         self.running = False  # logcat监控器的启动状态(启动/结束)
-        self.launchtime = LaunchTime(deviceid=self.device_id, packagename=self.package)
+        self.launchtime = LaunchTime(deviceid=self.device_id, packagename=self.package, path=self.path)
         self.exception_log_list = []
         self.start_time = None
 
@@ -219,79 +294,22 @@ class LogcatMonitor():
                 #     self.device.adb.get_process_stack_from_pid(RuntimeData.old_pid, process_stack_log_file)
 
 
-class LaunchTime(object):
+class LogcatTask:
+    """为项目任务池准备"""
 
-    def __init__(self, deviceid, packagename=None):
-        # 列表的容积应该不用担心，与系统有一定关系，一般存几十万条数据没问题的
-        self.launch_list = [("datetime", "packagenme/activity", "this_time(s)", "total_time(s)", "launchtype")]
-        self.packagename = packagename
+    def __init__(self, path, device=None):
+        self.path = path
+        self.device = device
+        self.logcat_collector = LogcatCollector(device=self.device, path=self.path)
 
-    def handle_launchtime(self, log_line):
-        '''
-        这个方法在每次一个启动时间的log产生时回调
-        :param log_line:最近一条的log 内容
-        :param tag:启动的方式，是normal的启动，还是自定义方式的启动：fullydrawnlaunch
-        #如果监控到到fully drawn这样的log，则优先统计这种log，它表示了到起始界面自定义界面的启动时间
-        :return:void
-        '''
-        # logger.debug(log_line)
-        # 08-28 10:57:30.229 18882 19137 D IC5: CLogProducer == > code = 0, uuid = 4FE71E350379C64611CCD905938C10CA, eventType = performance, eventName = am_activity_launch_timeme, \
-        #    log_time = 2019-08-28 10:57:30.229, contextInfo = {"tag": "am_activity_launch_time", "start_time": "2019-08-28 10:57:16",
-        #                              "activity_name_original": "com.android.settings\/.FallbackHome",
-        #                              "activity_name": "com.android.settings#com.android.settings.FallbackHome",
-        #                              "this_time": "916", "total_time": "916", "start_type": "code_start",
-        #                              "gmt_create": "2019-08-28 10:57:16.742", "uploadtime": "2019-08-28 10:57:30.173",
-        #                              "boottime": "2019-08-28 10:57:18.502", "firstupload": "2019-08-28 10:57:25.733"}
-        ltag = ""
-        if ("am_activity_launch_time" in log_line or "am_activity_fully_drawn_time" in log_line):
-            # 最近增加的一条如果是启动时间相关的log，那么回调所有注册的_handle
-            if "am_activity_launch_time" in log_line:
-                ltag = "normal launch"
-            elif "am_activity_fully_drawn_time" in log_line:
-                ltag = "fullydrawn launch"
-            logger.debug("launchtime log:" + log_line)
-        if ltag:
-            content = []
-            timestamp = time.time()
-            content.append(TimeUtils.formatTimeStamp(timestamp))
-            temp_list = log_line.split()[-1].replace("[", "").replace("]", "").split(',')[2:5]
-            for i in range(len(temp_list)):
-                content.append(temp_list[i])
-            content.append(ltag)
-            logger.debug("Launch Info: " + str(content))
-            if len(content) == 5:
-                content = self.trim_value(content)
-                if content:
-                    self.update_launch_list(content, timestamp)
-
-    def trim_value(self, content):
-        try:
-            content[2] = ms2s(float(content[2]))  # 将this_time转化单位转化为s
-            content[3] = ms2s(float(content[3]))  # 将total_time 转化为s
-        except Exception as e:
-            logger.error(e)
-            return []
-        return content
-
-    def update_launch_list(self, content, timestamp):
-        # if self.packagename in content[1]:
-        self.launch_list.append(content)
-        tmp_file = os.path.join(RuntimeData.package_save_path, 'launch_logcat.csv')
-        perf_data = {"task_id": "", 'launch_time': [], 'cpu': [], "mem": [],
-                     'traffic': [], "fluency": [], 'power': [], }
-        dic = {"time": timestamp,
-               "act_name": content[1],
-               "this_time": content[2],
-               "total_time": content[3],
-               "launch_type": content[4]}
-        perf_data['launch_time'].append(dic)
-        # perf_queue.put(perf_data)
-
-        with open(tmp_file, "a+", encoding="utf-8") as f:
-            csvwriter = csv.writer(f, lineterminator='\n')  # 这种方式可以去除csv的空行
-            logger.debug("save launchtime data to csv: " + str(self.launch_list))
-            csvwriter.writerows(self.launch_list)
-            del self.launch_list[:]
+    def run(self):
+        logger.debug("=" * 10 + "启动logcat监控器" + "=" * 10)
+        try:  # 有些机型上会报permmison denied，但是logcat -c的代码仍会部分执行，所以加try 保护
+            self.device.adb.run_shell_cmd('logcat -c -b all')  # 清除缓冲区
+        except RuntimeError as e:
+            logger.warning(e)
+        self.device.adb.run_shell_cmd('logcat -v threadtime -b all', sync=False)
+        self.logcat_collector.logcat_thread_func(save_dir=self.path, process_list=[], params="-b all")
 
 
 if __name__ == "__main__":
