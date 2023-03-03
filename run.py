@@ -50,12 +50,12 @@ def run():
         settings.report_path.mkdir()
         tmp = settings.report_path / "tmp"
         html = settings.report_path / "html"
-        # pytest.main(
-        #     ['--reruns=1', '--reruns-delay=2', "--count=1", "--random-order",
-        #      f'--alluredir={tmp}', "--clean-alluredir"])
         pytest.main(
-            ["repos/GM/TeenDriver/test_teen_driver.py::test_427292", '--reruns=1', '--reruns-delay=2', "--count=1", "--random-order",
+            ['--reruns=1', '--reruns-delay=2', "--count=1", "--random-order",
              f'--alluredir={tmp}', "--clean-alluredir"])
+        # pytest.main(
+        #     ["repos/GM/TeenDriver/test_teen_driver.py::test_427292", '--reruns=1', '--reruns-delay=2', "--count=1", "--random-order",
+        #      f'--alluredir={tmp}', "--clean-alluredir"])
         """
                    --reruns: 失败重跑次数
                    --count: 重复执行次数
