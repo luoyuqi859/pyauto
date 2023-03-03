@@ -25,6 +25,10 @@ class BaseError(Exception):
         return repr(self.message)
 
 
+class InvalidTestError(BaseError):
+    """"""
+
+
 class RootError(BaseError):
     """"""
 
@@ -62,6 +66,11 @@ class ElementNotFoundError(BaseError):
 
 class TestError(BaseError):
     """test errors"""
+
+
+class InvalidRepoError(Exception):
+    def __init__(self, repo):
+        super().__init__(f'Invalid repo: {repo}')
 
 
 @contextmanager

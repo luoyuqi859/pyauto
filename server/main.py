@@ -13,6 +13,7 @@ import pytest
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from conf import settings
+from server.host import local_host
 
 app = FastAPI()
 
@@ -54,9 +55,9 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@app.on_event("startup")
-def startup_event():
-    os.system(f"{settings.root_path}/server/xxx.html")
+# @app.on_event("startup")
+# def startup_event():
+#     os.system(f"{settings.root_path}/server/xxx.html")
 
 
 @app.websocket("/ws/{user}")
@@ -81,6 +82,20 @@ async def websocket_endpoint(websocket: WebSocket, user: str):
         await manager.broadcast(f"用户-{user}-离开")
 
 
+@app.get("/api/repo/list")
+def get_repos():
+    """
+    获取所有脚本仓库
+    :param request:
+    :return:
+    """
+    data = []
+    for repo in local_host.repos:
+        data.append(repo)
+    return {"data": data}
+
+
 if __name__ == '__main__':
     import uvicorn
+
     uvicorn.run("main:app", host="0.0.0.0", port=5555, reload=True)

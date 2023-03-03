@@ -3,7 +3,7 @@
 """
 @Author: Luo Yuqi
 @File: repo
-@Created: 2023/2/21 13:24
+@Created: 2023/3/3 17:57
 """
 import inspect
 from importlib import reload
@@ -77,13 +77,3 @@ class Repo(dict):
 
     def __repr__(self):
         return f'<Repo {self.name}>'
-
-
-class RepoNotFoundError(Exception):
-    def __init__(self, name):
-        super().__init__(f'Can not find repo: {name}')
-
-
-class InvalidRepoError(Exception):
-    def __init__(self, repo):
-        super().__init__(f'Invalid repo: {repo}')

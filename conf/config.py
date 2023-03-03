@@ -14,6 +14,7 @@ uiauto_path = root_path / "uiauto"
 allure_bat = root_path / 'libs' / 'allure' / "bin" / "allure"
 current_time = timeoperator.strftime_now("%Y-%m-%d-%H-%M-%S")
 report_path = root_path / "report" / config.project_name / current_time
+repos_path = root_path / "repos"
 perf_path = report_path / "perf"  # 性能数据路径
 ocr_cls = root_path / 'libs' / 'ocr' / 'cls'
 ocr_det = root_path / 'libs' / 'ocr' / 'det'
