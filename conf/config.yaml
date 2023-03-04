@@ -14,7 +14,7 @@ lark:
 # 测试对象性能监控 logcat, memory, cpu, fps, thread_num, 确保测试对象日期时间正确
 perf:
   # 性能监控开关
-  switch: True
+  switch: False
   # 对象apk
   package: com.gm.hmi.settings
   frequency: 5

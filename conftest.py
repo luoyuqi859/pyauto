@@ -151,6 +151,7 @@ def performance(d_obj):
             logger.error(e)
     else:
         logger.info("没有开启性能监控功能")
+    yield
 
 # def pytest_report_teststatus(report, config):
 #     """自定义测试结果"""

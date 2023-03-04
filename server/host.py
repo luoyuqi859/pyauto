@@ -46,6 +46,7 @@ class Host(dict):
         self.port = port or get_free_port()
         self.sys_version = f'{platform.system()} {platform.version()}, {platform.processor()}, python {platform.python_version()}'
         self.repos = []
+        self.load_repo()
 
     def load_repo(self, **extra):
         # 从repo_root加载
@@ -94,9 +95,9 @@ class Host(dict):
         repo.name = root_package
         return repo
 
+    def add_object(self, o, category=None):
+        repo = self.get_repo(o)
+        repo.add(o, category=category)
+
 
 local_host = Host()
-
-if __name__ == '__main__':
-    f = local_host.load_repo()
-    a = f

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 @Author: Luo Yuqi
-@File: __init__.py
-@Created: 2023/3/3 18:06
+@File: __init__
+@Created: 2023/3/4
 """
-project= "other"

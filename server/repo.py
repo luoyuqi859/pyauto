@@ -23,7 +23,6 @@ class Repo(dict):
         self.__module = module
         self.path = Path(module.__file__).parent
         self.name = module.__name__
-        self._git_path = git_path
 
     @property
     def git_path(self):
@@ -32,10 +31,6 @@ class Repo(dict):
             while not (self._git_path / '.git').exists:
                 self._git_path = self._git_path.parent
         return self._git_path
-
-    @git_path.setter
-    def git_path(self, value):
-        self._git_path = value
 
     def add(self, o, category=None):
         if inspect.isclass(o):

@@ -14,6 +14,7 @@ import pytest
 from conf import settings
 from repos.GM.TeenDriver import element
 from repos.GM.keywords.gm_vehicle_sim import GMS
+from server.o import test_object
 from uiauto.android.device import AndroidDevice
 
 
@@ -885,6 +886,7 @@ def test_397660(d_obj: AndroidDevice):
         d_obj.click(text="Cancel")
         d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
 
+
 #
 # @allure.title("To verify Driver Workload and Ignition Restrictions in IGNITION STATE")
 # def test_399687(d_obj: AndroidDevice):
@@ -936,7 +938,7 @@ def test_397660(d_obj: AndroidDevice):
 #         d_obj.click(text="Cancel")
 #         d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
 
-
+@test_object.script()
 @allure.title(
     "To verify Driver Workload and Ignition Restrictions in UxR is NO_SETUP - Teen Driver Settings from Teen Driver app")
 def test_399718(d_obj: AndroidDevice):
@@ -1285,7 +1287,7 @@ def test_423215(d_obj: AndroidDevice):
 #         d_obj.click(text="Teen Driver")
 #         d_obj.click(text="Continue")
 
-
+@test_object.script()
 @allure.title(
     'To verify status of radio button in "Speed Limiter" tertiary screen is matched with the "Speed Limiter" switch under Teen Driver Settings')
 def test_427292(d_obj: AndroidDevice):
