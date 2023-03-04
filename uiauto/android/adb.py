@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- ecoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 @Author: Luo Yuqi
 @File: adb
@@ -48,7 +48,8 @@ class AdbOperator:
             else:
                 adb_dir = Path(__file__).parent / 'sdk' / 'platform-tools-latest-linux' / 'platform-tools' / 'adb'
                 return os.path.abspath(adb_dir)
-        return p
+        else:
+            return "adb"
 
     @property
     def serial(self):
@@ -104,10 +105,7 @@ class AdbOperator:
         获取设备列表
         :return:
         """
-        adb = os.path.basename(self._adb_path)
-        f = os.path.dirname(self._adb_path)
-        os.chdir(f)
-        proc = subprocess.Popen(f"{adb} devices", stdout=subprocess.PIPE, shell=True)
+        proc = subprocess.Popen(f"{self._adb_path} devices", stdout=subprocess.PIPE, shell=True)
         result = proc.stdout.read()
         if not isinstance(result, str):
             result = result.decode('utf-8')
@@ -148,13 +146,10 @@ class AdbOperator:
         :return: 执行adb命令的子进程或执行的结果
         :rtype: Popen or str
         """
-        adb = os.path.basename(self._adb_path)
-        f = os.path.dirname(self._adb_path)
-        os.chdir(f)
         if self._device_id:
-            cmdlet = [adb, '-s', self._device_id, cmd]
+            cmdlet = [self._adb_path, '-s', self._device_id, cmd]
         else:
-            cmdlet = [adb, cmd]
+            cmdlet = [self._adb_path, cmd]
         for i in range(len(argv)):
             arg = argv[i]
             if not isinstance(argv[i], str):
@@ -659,14 +654,14 @@ class ADB():
 
 if __name__ == '__main__':
     a = ADB()
-    a.adb.run_shell_cmd("mkdir /data/local/tmp")
-    # print(a.adb.path("/data/local/tmp/minicap").exists)
-    # print(Path(__file__).parent / 'sdk' / 'adb.exe')
-    # print(a.adb.location())
-    # print(a.adb.serial)
-    # print(a.adb.phone_brand)
-    # print(a.adb.phone_model)
-    # print(a.adb.screen_size)
-    # print(a.adb.sdk_version)
-    # print(a.adb.get_cpu_abi())
-    # print(a.adb.serial)
+    # a.adb.run_shell_cmd("mkdir /data/local/tmp")
+    print(a.adb.path("/data/local/tmp/minicap").exists)
+    print(Path(__file__).parent / 'sdk' / 'adb.exe')
+    print(a.adb.location())
+    print(a.adb.serial)
+    print(a.adb.phone_brand)
+    print(a.adb.phone_model)
+    print(a.adb.screen_size)
+    print(a.adb.sdk_version)
+    print(a.adb.get_cpu_abi())
+    print(a.adb.serial)

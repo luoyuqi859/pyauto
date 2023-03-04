@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- ecoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 @Author: Luo Yuqi
 @File: list

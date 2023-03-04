@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- ecoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 @Author: Luo Yuqi
 @File: screenshot
@@ -154,7 +154,8 @@ class UiaScreenshot(ScreenshotBase):
 
     @property
     def pillow(self):
-        return self.device.d.screenshot()
+        _image = self.device.d.screenshot()
+        return _image
 
     @property
     def byte64(self):

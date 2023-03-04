@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- ecoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 @Author: Luo Yuqi
 @File: ddd
@@ -24,10 +24,17 @@ from uiauto.android.device import connect, AndroidDevice
 # # GMS.sendSignal(Signal='TeenDrvFtrAvl', Value=1, Type='Signal', Mode='HS')
 conn = connect()
 device = AndroidDevice(conn)
+# device.minicap.install_minicap()
+print(device.d.info)
+print("初始化设备成功")
 # device.screenshot.save_grid("./test.png")
 # f = device.page.find_element(0.12, 0.4)
 # f = device.info
-print(device.app.current())
+# print(device.serial)
+# device(text="刷新服务状态").screenshot("./test.png")
+# print(device.ocr.image_to_text('./test.png'))
+# device.swipe.down()
+# device.click(text="我的设备")
 # GMS.sendSignal(Signal='TDAP_TeenDrvrActvAuth', Value=1, Type='Signal', Mode='HS')
 # GMS.sendSignal(Signal='ORIP_DrvrStBltStsAuth', Value=2, Type='Signal', Mode='HS')
 # GMS.sendSignal(Signal='ORIP_DrvrStBltStsAuth_Inv', Value=0, Type='Signal', Mode='HS')

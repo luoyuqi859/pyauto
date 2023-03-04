@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- ecoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 @Author: Luo Yuqi
 @File: element
@@ -488,7 +488,7 @@ class AndroidElement:
         :param fmt: 输出格式：pillow/opencv/base64
         :return:
         """
-        self.display()
+        # self.display()
         img = self.device.screenshot(fmt='pillow')  # TODO
         l, t, r, b = self.bounds.unpack()
         ele_img = img.crop((l, t, r, b))
@@ -507,7 +507,7 @@ class AndroidElement:
         :param name:
         :return:
         """
-        self.display()
+        # self.display()
         time.sleep(0.5)
         img = self.device.screenshot.pillow
         l, t, r, b = self.bounds.unpack()

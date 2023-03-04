@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- ecoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 @Author: Luo Yuqi
 @File: device
@@ -61,7 +61,6 @@ class AndroidDevice(BaseDevice):
         super().__init__(**kwargs)
         self.d: u2.Device = device
         self._adb = None
-        # self._ocr = None
 
     def __getattr__(self, item):
         self.__get_info()
@@ -111,7 +110,7 @@ class AndroidDevice(BaseDevice):
         序列号
         """
         if not self.get('serial'):
-            self['serial'] = self._adb.adb.serial
+            self['serial'] = ADB().adb.serial
         return self['serial']
 
     @property
