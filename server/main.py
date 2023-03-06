@@ -10,9 +10,9 @@ from typing import List
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from conf import settings
-from server.host import local_host
-from server.loader import TestLoader
-from utils.path_fun import Path
+from server import views_repo
+from server.core.host import local_host
+from server.core.loader import TestLoader
 
 app = FastAPI()
 
@@ -82,42 +82,8 @@ async def websocket_endpoint(websocket: WebSocket, user: str):
         await manager.broadcast(f"用户-{user}-离开")
 
 
-@app.get("/api/repo/list")
-def get_repos():
-    """
-    获取所有脚本仓库
-    :param request:
-    :return:
-    """
-    data = []
-    for repo in local_host.repos:
-        info = dict(
-            name=repo.name,
-        )
-        data.append(info)
-    return {"data": data}
-
-
-@app.get("/api/repo/{repo_name}/scripts")
-def get_repo_scripts(repo_name):
-    """
-    获取指定仓库中的所有测试脚本
-    :param request:
-    :param repo_name:
-    :return:
-    """
-    repo = local_host.get_repo(repo_name)
-    loader = TestLoader()
-    loader.load_path(repo.path, include_objects=True)
-    data = []
-    for s in repo.script_list or []:
-        info = dict(
-            test_name=s.test_name,
-            pytest_name=s.pytest_name,
-        )
-        data.append(info)
-    return {"data": data}
-
+# 注册路由
+app.include_router(views_repo.router)
 
 if __name__ == '__main__':
     import uvicorn

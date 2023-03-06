@@ -7,8 +7,7 @@
 """
 import inspect
 
-from conf import settings
-from server.host import local_host
+from server.core.host import local_host
 
 
 class _TestObject:

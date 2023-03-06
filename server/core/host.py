@@ -11,7 +11,7 @@ import platform
 from types import MethodType, FunctionType
 
 from conf import settings
-from server.repo import Repo
+from server.core.repo import Repo
 from utils import py
 from utils.errors import InvalidTestError, InvalidRepoError
 from utils.net import get_host_ip, get_free_port
@@ -54,7 +54,7 @@ class Host(dict):
             repo_root = Path(self.workspace)
             for path in repo_root.dirs():
                 name = path.basename
-                if name.startswith('.'):
+                if name.startswith('.') or name.startswith('__'):
                     continue
                 self.get_repo(path)
         for name, path in extra.items():

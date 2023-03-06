@@ -5,7 +5,7 @@
 @File: test_xxx
 @Created: 2023/3/4
 """
-from server.o import test_object
+from server.core.o import test_object
 
 
 @test_object.script()

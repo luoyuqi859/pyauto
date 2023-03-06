@@ -9,9 +9,9 @@ import os
 import sys
 import traceback
 
-from server import host
-from server.host import local_host
-from server.repo import Repo
+from server.core import host
+from server.core.host import local_host
+from server.core.repo import Repo
 from utils import py
 
 
