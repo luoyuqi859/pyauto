@@ -5,6 +5,7 @@
 @File: run.py
 @Created: 2023/2/16 9:23
 """
+import argparse
 import os
 import shutil
 import traceback
@@ -12,6 +13,7 @@ import traceback
 import pytest
 
 from conf import settings
+from plugins.py.common import CommonPlugin
 from utils import config
 from utils.allure_fun import AllureDataCollect
 from utils.excel_fun import ErrorCaseExcel
@@ -50,12 +52,15 @@ def run():
         settings.report_path.mkdir()
         tmp = settings.report_path / "tmp"
         html = settings.report_path / "html"
-        pytest.main(
-            ['--reruns=1', '--reruns-delay=2', "--count=1", "--random-order",
-             f'--alluredir={tmp}', "--clean-alluredir"])
-        # pytest.main(
-        #     ["repos/GM/TeenDriver/test_teen_driver.py::test_427292", '--reruns=1', '--reruns-delay=2', "--count=1", "--random-order",
-        #      f'--alluredir={tmp}', "--clean-alluredir"])
+        parser = argparse.ArgumentParser(description="PyAuto command line", prog='PyAuto')
+        parser.add_argument('--case', type=str)
+        args = parser.parse_args()
+        case = args.case
+        pytest_args = [f'--alluredir={tmp}', "--clean-alluredir"] + config.pytest
+        case_list = case.split(";") if case else []
+        for i in case_list:
+            pytest_args.append(i)
+        pytest.main(pytest_args, plugins=[CommonPlugin()])
         """
                    --reruns: 失败重跑次数
                    --count: 重复执行次数

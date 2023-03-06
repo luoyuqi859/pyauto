@@ -8,7 +8,7 @@
 import threading
 from dataclasses import dataclass
 from enum import Enum
-from typing import Text, Union
+from typing import Text, Union, List
 
 from pydantic import BaseModel
 
@@ -44,6 +44,7 @@ class Config(BaseModel):
     excel_report: bool
     device: "Serial" = "auto"
     perf: "Pref"
+    pytest: List
 
 
 @dataclass

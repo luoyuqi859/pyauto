@@ -9,7 +9,15 @@ excel_report: True
 # 飞书通知
 lark:
   webhook: https://open.feishu.cn/open-apis/bot/v2/hook/e1d45e2f-acfd-4cf4-a521-94a30deb21b0
-#  webhook: https://open.feishu.cn/open-apis/bot/v2/hook/e8320b45-dc71-417e-b297-a69615bf3ac4
+
+# pytest相关配置
+pytest:
+  - --reruns=1  # 失败重测次数
+  - --reruns-delay=2 # 失败重测间隔
+  - --count=1 # 循环次数
+  - --random-order # 随机执行
+#  - D:\pyauto\repos\GM\TeenDriver\test_teen_driver.py::test_427292  # 脚本选择 注释执行repos目录下所有用例
+  - D:\pyauto\repos\GM\TeenDriver\test_teen_driver.py::test_399718  # 脚本选择 注释执行repos目录下所有用例
 
 # 测试对象性能监控 logcat, memory, cpu, fps, thread_num, 确保测试对象日期时间正确
 perf:

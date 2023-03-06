@@ -14,7 +14,6 @@ import pytest
 from conf import settings
 from repos.GM.TeenDriver import element
 from repos.GM.keywords.gm_vehicle_sim import GMS
-from server.o import test_object
 from uiauto.android.device import AndroidDevice
 
 
@@ -31,7 +30,6 @@ def test_323313(d_obj: AndroidDevice):
             text="Set a key with custom restrictions and alerts that can help your teen make good driving decisions. See your Owner’s Manual for details.")
 
 
-#
 @allure.title('To verify if user can enter 4-digit PIN to set Teen Driver code')
 def test_329112(d_obj: AndroidDevice):
     with allure.step("1. Launch Settings"):
@@ -84,7 +82,7 @@ def test_350854(d_obj: AndroidDevice):
 
 
 @allure.title('To Verify the Code Set')
-def test_363660(d_obj: AndroidDevice):
+def test_363660(d_obj:AndroidDevice):
     with allure.step('1. Open Teen Driver Option'):
         d_obj.click(text="Settings").click(text="Vehicle").click(text="Teen Driver")
         d_obj.click(text="Continue")
@@ -938,7 +936,6 @@ def test_397660(d_obj: AndroidDevice):
 #         d_obj.click(text="Cancel")
 #         d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
 
-@test_object.script()
 @allure.title(
     "To verify Driver Workload and Ignition Restrictions in UxR is NO_SETUP - Teen Driver Settings from Teen Driver app")
 def test_399718(d_obj: AndroidDevice):
@@ -969,7 +966,6 @@ def test_399718(d_obj: AndroidDevice):
         GMS.sendSignal(Signal='TEGP_TrnsShftLvrPstnAuth_Inv', Value=0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='VSADP_VehSpdAvgDrvnAuth', Value=10.0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='VSADP_VehSpdAvgDrvnAuth_Inv', Value=0, Type='Signal', Mode='HS')
-
         time.sleep(10)
         d_obj.assert_exist(text="Vehicle")
         e = d_obj(resourceId='com.gm.hmi.settings:id/car_ui_list_item_text_container')[1]
@@ -1087,6 +1083,7 @@ def test_399762(d_obj: AndroidDevice):
     "To verify Speed Warning Switch On and Off in Teen Driver Settings Screen")
 def test_413361(d_obj: AndroidDevice):
     with allure.step('1. Navigate to Teen Driver Menu'):
+
         d_obj.click(text="Settings").click(text="Vehicle").click(text="Teen Driver")
         d_obj.click(text="Continue")
         d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
@@ -1116,7 +1113,7 @@ def test_413361(d_obj: AndroidDevice):
     with allure.step('9. Click back'):
         d_obj.click(resourceId=element.back)
     with allure.step(
-            '10. Send       TeenDriverOverspeedWarningCustomizationCurrentSettingValue / TDOSWCCSV_CrSetVal Signal - OFF'):
+            '10. Send TeenDriverOverspeedWarningCustomizationCurrentSettingValue / TDOSWCCSV_CrSetVal Signal - OFF'):
         GMS.sendSignal(Signal='TDOSWCCSV_CrSetVal', Value=1, Type='Signal', Mode='HS')
     with allure.step('11. Switch OFF Speed Warning in Teen Driver Settings Screen'):
         # 点击返回键后自带关闭开关
@@ -1287,7 +1284,6 @@ def test_423215(d_obj: AndroidDevice):
 #         d_obj.click(text="Teen Driver")
 #         d_obj.click(text="Continue")
 
-@test_object.script()
 @allure.title(
     'To verify status of radio button in "Speed Limiter" tertiary screen is matched with the "Speed Limiter" switch under Teen Driver Settings')
 def test_427292(d_obj: AndroidDevice):

@@ -71,8 +71,7 @@ async def websocket_endpoint(websocket: WebSocket, user: str):
             await manager.send_personal_message(f"你说了: {data}", websocket)
             if data == "start":
                 import subprocess
-                subprocess.call(['python', f'{settings.server_path}/cli.py', "--case",
-                                 r"E:\py_work\pyauto\repos\lxl\test_xxx.py::test_xxx,E:\py_work\pyauto\repos\lxl\test_xxx.py::test_xxx1"])
+                subprocess.call(['python', f'{settings.server_path}/run.py'])
                 await manager.broadcast("通知: 本次测试结束")
             else:
                 await manager.broadcast(f"用户{user} 说: {data}")
