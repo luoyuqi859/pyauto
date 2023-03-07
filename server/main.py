@@ -54,9 +54,9 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-# @app.on_event("startup")
-# def startup_event():
-#     os.system(f"{settings.root_path}/server/xxx.html")
+@app.on_event("startup")
+def startup_event():
+    os.system(f"{settings.root_path}/server/xxx.html")
 
 
 @app.websocket("/ws/{user}")
@@ -71,7 +71,7 @@ async def websocket_endpoint(websocket: WebSocket, user: str):
             await manager.send_personal_message(f"你说了: {data}", websocket)
             if data == "start":
                 import subprocess
-                subprocess.call(['python', f'{settings.server_path}/run.py'])
+                subprocess.call(['python', f'{settings.root_path}/run.py'])
                 await manager.broadcast("通知: 本次测试结束")
             else:
                 await manager.broadcast(f"用户{user} 说: {data}")
