@@ -49,7 +49,6 @@ def run():
                         开始执行{config.project_name}项目... 佛祖保佑       全部跑过
             """
         )
-        settings.report_path.mkdir()
         tmp = settings.report_path / "tmp"
         html = settings.report_path / "html"
         parser = argparse.ArgumentParser(description="PyAuto command line", prog='PyAuto')

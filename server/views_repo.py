@@ -5,6 +5,8 @@
 @File: views_repo
 @Created: 2023/3/6 10:06
 """
+import time
+
 from fastapi import APIRouter
 
 from server.core.host import local_host
@@ -14,7 +16,7 @@ router = APIRouter(prefix="/repo")
 
 
 @router.get("/api/list")
-def get_repos():
+async def get_repos():
     """
     获取所有脚本仓库
     :param request:
@@ -30,7 +32,7 @@ def get_repos():
 
 
 @router.get("/api/{repo_name}/scripts")
-def get_repo_scripts(repo_name):
+async def get_repo_scripts(repo_name: str):
     """
     获取指定仓库中的所有测试脚本
     :param request:

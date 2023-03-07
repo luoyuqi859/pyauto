@@ -54,9 +54,9 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@app.on_event("startup")
-def startup_event():
-    os.system(f"{settings.root_path}/server/xxx.html")
+# @app.on_event("startup")
+# def startup_event():
+#     os.system(f"{settings.root_path}/server/xxx.html")
 
 
 @app.websocket("/ws/{user}")
@@ -87,4 +87,4 @@ app.include_router(views_repo.router)
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=5555, reload=True)
+    uvicorn.run(app="main:app", host="0.0.0.0", port=5555, reload=True)

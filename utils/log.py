@@ -5,7 +5,8 @@
 @File: log
 @Created: 2023/2/17 14:26
 """
-
+import time
+#
 from functools import wraps
 import os
 import datetime
@@ -77,20 +78,20 @@ class Logger:
         return project_log_path
 
     def logger_add(self):
-        loguru.logger.add(
-            # 水槽，分流器，可以用来输入路径
-            sink=settings.report_path / f"runtime_{datetime.date.today()}.log",
-            # 日志创建周期
-            rotation='00:00',
-            # 保存
-            retention='10 days',
-            # 文件的压缩格式
-            compression='zip',
-            # 编码格式
-            encoding="utf-8",
-            # 具有使日志记录调用非阻塞的优点
-            enqueue=True
-        )
+        from sys import stdout
+        loguru.logger.configure(handlers=[{'sink': stdout}])
+        loguru.logger.add(settings.report_path / 'runtime_{time:YYYYMMDD}.log',
+                          # 日志创建周期
+                          rotation='00:00',
+                          # 保存
+                          retention='10 days',
+                          # 文件的压缩格式
+                          compression='zip',
+                          # 编码格式
+                          encoding="utf-8",
+                          # 具有使日志记录调用非阻塞的优点
+                          enqueue=True
+                          )
 
     def trace(self, msg: str):
         return self.logger.trace(msg)
@@ -118,9 +119,6 @@ class Logger:
         return loguru.logger
 
 
-'''
-# 实例化日志类
-'''
 logger = Logger().get_logger
 
 if __name__ == '__main__':

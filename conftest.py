@@ -72,7 +72,10 @@ def performance(d_obj):
     """
     logger.info(d_obj.d.info)
     logger.info("初始化设备成功")
-    if config.perf.switch:
+    if not config.perf.switch:
+        logger.info("没有开启性能监控功能")
+        yield
+    else:
         monitors.run()
         yield
         monitors.stop()
@@ -81,9 +84,7 @@ def performance(d_obj):
             d.all_handle(path=settings.perf_path)
         except Exception as e:
             logger.error(e)
-    else:
-        logger.info("没有开启性能监控功能")
-    yield
+
 
 # def pytest_report_teststatus(report, config):
 #     """自定义测试结果"""
