@@ -5,7 +5,7 @@
 @File: config
 @Created: 2023/2/20 10:58
 """
-from utils import config
+from utils import config, net
 from utils.path_fun import Path
 from utils.time_fun import timeoperator
 
@@ -22,6 +22,8 @@ ocr_det = root_path / 'libs' / 'ocr' / 'det'
 ocr_rec = root_path / 'libs' / 'ocr' / 'rec'
 minicap_path = root_path / 'libs' / 'minicap'
 minitouch_path = root_path / 'libs' / 'minitouch'
+localhost_ip = net.get_host_ip()
+localhost_port = net.get_free_port()
 
 # u2
 ELEMENT_WAIT_TIMEOUT = 5  # 元素默认等待时间
@@ -31,4 +33,5 @@ WAIT_FOR_DEVICE_TIMEOUT = 70
 MAX_SWIPE_STEPS = 55  # 滑动一屏最多需要的步数，如果把屏幕分成十等份，那么滑动0.1的距离需要5.5步
 LONG_CLICK_DURATION = 1  # 长按时长
 MIN_SWIPE = 100
+DEFAULT_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'  # 默认时间格式
 

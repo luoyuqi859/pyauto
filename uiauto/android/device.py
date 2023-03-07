@@ -9,7 +9,6 @@ import math
 import re
 import subprocess
 import time
-import xml
 
 from conf import settings
 import uiautomator2 as u2
@@ -74,6 +73,15 @@ class AndroidDevice(BaseDevice):
             kwargs.update(o)
             return AndroidElement(device=self, **kwargs)
         return AndroidElement(device=self, **kwargs)
+
+    def __repr__(self):
+        return f'<AndroidDevice {self.name or self.serial}'
+
+    def __eq__(self, other):
+        return other and self.serial == other.serial
+
+    def __hash__(self):
+        return hash(self.serial)
 
     @property
     def info(self):
@@ -466,12 +474,3 @@ class AndroidDevice(BaseDevice):
         if error:
             raise AdbError(error)
         return resp.get('output')
-
-    def __repr__(self):
-        return f'<AndroidDevice {self.name or self.serial}'
-
-    def __eq__(self, other):
-        return other and self.serial == other.serial
-
-    def __hash__(self):
-        return hash(self.serial)

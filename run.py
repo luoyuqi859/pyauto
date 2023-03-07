@@ -14,7 +14,7 @@ import pytest
 
 from conf import settings
 from plugins.py.common import CommonPlugin
-from utils import config
+from utils import config, net
 from utils.allure_fun import AllureDataCollect
 from utils.excel_fun import ErrorCaseExcel
 from utils.lark_notify import FeiShuTalkChatBot
@@ -86,8 +86,8 @@ def run():
         }
         if config.notification_type != NotificationType.DEFAULT.value:
             notification_mapping.get(config.notification_type)()
-        # 程序运行之后，自动启动报告，如果不想启动报告，可注释这段代码
-        os.system(f"{settings.allure_bat} open {html} -p 9999")
+        # 程序运行之后，自动启动报告，如果不想启动报告，可注释这段代码,
+        os.system(f"{settings.allure_bat} open {html} -p {settings.localhost_port}")
 
     except Exception:
         # 如有异常，相关异常发送邮件

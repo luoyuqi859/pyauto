@@ -7,6 +7,8 @@
 """
 import time
 
+from panda.uitest.android import connect
+
 from repos.GM.keywords.gm_vehicle_sim import GMS
 # import time
 #
@@ -15,18 +17,23 @@ from repos.GM.keywords.gm_vehicle_sim import GMS
 #
 # from repos.GM.keywords.gm_vehicle_sim import GMS
 # # from uiauto.android.adb import ADB
-from uiauto.android.device import connect, AndroidDevice
+# from uiauto.android.device import connect, AndroidDevice
 
 #
 #
 # # serial = ADB().adb.serial
 # # device = u2.Device(serial)
 # # GMS.sendSignal(Signal='TeenDrvFtrAvl', Value=1, Type='Signal', Mode='HS')
-conn = connect()
-device = AndroidDevice(conn)
-# device.minicap.install_minicap()
-print(device.d.info)
-print("初始化设备成功")
+# conn = connect()
+# device = AndroidDevice(conn)
+d = connect()
+# print(d.app.get_info())
+print(hasattr(d, 'qweqweq'))
+d.app("com.gm.teenmode.app.LAUNCH").start()
+# # device.minicap.install_minicap()
+# device.app("com.gm.hmi.settings").start()
+# print(device.d.info)
+# print("初始化设备成功")
 # device.screenshot.save_grid("./test.png")
 # f = device.page.find_element(0.12, 0.4)
 # f = device.info
@@ -44,7 +51,7 @@ print("初始化设备成功")
 # f = device(text="Off").offset(x=0.12)
 
 # print(device.ocr.image_to_text('./menu_unavailable_while_driving.png'))
-# GMS.sendSignal(Signal='TnDrvOvSpdWrnCstStAvl', Value=1, Type='Signal', Mode='HS')
+# GMS.sendSignal(Signal='TeenDrvFtrAvl', Value=1, Type='Signal', Mode='HS')
 # d(reso)
 # a = f
 # device.screenshot.save_grid('./test.png')

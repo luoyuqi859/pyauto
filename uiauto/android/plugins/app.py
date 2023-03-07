@@ -14,6 +14,7 @@ from adbutils import AdbError
 from conf import settings
 from utils import net
 from utils.errors import UiaError
+from utils.log import logger
 
 
 class App:
@@ -21,6 +22,15 @@ class App:
         self.device = device
         self.package = None
         self.apk = None
+
+    def __call__(self, package=None, activity=None, name=None, apk=None, url=None):
+        self.package = package
+        self.activity = activity
+        self.name = name
+        if apk:
+            self.apk = apk
+        self.url = url
+        return self
 
     @property
     def serial(self):
@@ -72,10 +82,7 @@ class App:
             self.device.shell(f'am start {self.package} -W')
         else:
             self.device.shell(f'am start -n {self.package}/{self.activity} -W')
-        if not hasattr(self.device, '_running_apps'):
-            setattr(self.device, '_running_apps', set())
-        getattr(self.device, '_running_apps').add(self.package)
-        self.device.success(f'Start app: {self.name or self.package}')
+        logger.success(f'Start app: {self.name or self.package}')
 
     def stop(self):
         """
@@ -86,7 +93,7 @@ class App:
             raise AdbError('Unknown package!')
         self.device.shell(f'am force-stop {self.package}')
 
-    def install(self, opts=None, timeout=None):
+    def install(self, opts=None):
         """
         安装apk
 
@@ -102,7 +109,7 @@ class App:
         if opts is None:
             opts = []
         command = f'install {" ".join(opts)} "{self.apk}"'
-        return self.device.run_command(command, timeout=timeout)
+        return self.device.adb_fp.adb.run_adb_cmd(command)
 
     def install_url(self, url, opts=None, timeout=None, headers=None):
         apk_path = net.download(url, timeout, headers=headers)
@@ -168,15 +175,6 @@ class App:
         packages = re.findall(r'package:([^\s]+)', output)
         process_names = re.findall(r'([^\s]+)$', self.device.shell('ps; ps -A'), re.M)
         return list(set(packages).intersection(process_names))
-
-    def __call__(self, package=None, activity=None, name=None, apk=None, url=None):
-        self.package = package
-        self.activity = activity
-        self.name = name
-        if apk:
-            self.apk = apk
-        self.url = url
-        return self
 
     def quit_all(self):
         """

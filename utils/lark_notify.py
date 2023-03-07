@@ -12,6 +12,7 @@ import time
 import requests
 import urllib3
 
+from conf import settings
 from utils import config
 from utils.allure_fun import TestMetrics
 
@@ -146,6 +147,16 @@ class FeiShuTalkChatBot:
                                 {
                                     "tag": "text",
                                     "text": f"{self.metrics.time}\n"
+                                },
+                            ],
+                            [
+                                {
+                                    "tag": "text",
+                                    "text": "报 告 地 址 : "
+                                },
+                                {
+                                    "tag": "text",
+                                    "text": f"{settings.localhost_ip}:{settings.localhost_port}\n"
                                 },
                                 {
                                     "tag": "at",

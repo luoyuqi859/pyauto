@@ -1,23 +1,20 @@
 # pyauto框架介绍
 
-本框架主要是基于 Python + pytest + pytest相关插件+ allure + loguru + yaml + uiautomator2 + weditor + 飞书通知 +
-实现的UI自动化框架
-
-
+移动端Android UI自动化框架
 
 ## 框架功能
 
-* 测试用例失败重测 '--reruns=1', '--reruns-delay=2'
-* 测试用例重复执行 "--count=1"
-* 测试用例执行完毕收集花费时间最长的10条用例
+* 测试用例失败重测
+* 测试用例重复执行
 * 测试用例随机执行
 * 日志模块: 打印执行中每个步骤
-* 飞书通知
+* 飞书通知: 测试结束后通知测试完成情况
 * excel表格收集测试失败用例
-* allure报告失败截图
+* allure报告展示, 显示用例信息，用例步骤，失败截图，性能监控截图，失败过程信息
 * weditor辅助元素信息查找
 * 测试对象性能监控, memory,logcat,fps,cpu,thread_num
 * 增加minicap对sdk30,31,32的支持，加快截图速度
+* ocr文字识别
 
 ## 目录结构
 
@@ -38,22 +35,135 @@
   uiautomator2）
 * 进入libs目录下执行 install.bat， 安装框架相关依赖
 * 框架运行入口 run.py
-* 执行方式1,通过pycharm编辑器在run.py 右键绿三角执行，会自动执行repos目录下所有测试用例
-* 执行方式2,当前目录下CMD命令行执行python run.py自动执行所有repos目录下所有测试用例, 指定目录,python run.py --case
-  路径用例，路径用例依据pytest规则，如 python run.py --case D:\pyauto\repos\lxl\test_xxx.py::
-  test_xxx,存在多个执行路径用";"分开
+
+## 执行方法
+
+* 编辑器执行,通过pycharm编辑器在run.py 右键绿三角执行，会自动执行repos目录下所有测试用例
+* 命令行执行,当前目录下CMD命令行执行python run.py自动执行所有repos目录下所有测试用例
+* 测试区域选择1, conf/config.yaml中pytest选项添加想要测试的路径
+* 测试区域选择2,python run.py --case 路径用例，路径用例依据pytest规则，如 python run.py --case D:
+  \pyauto\repos\lxl\test_xxx.py::test_xxx,存在多个执行路径用";"分开
 
 ## 框架掌握要点
 
 * 掌握uiautomator2常用api
-* 掌握pytest
+* 掌握pytest等相关用法
 * 掌握allure标记步骤等方法
 * 关注conf/config.yaml中配置选项参数
-* 执行用例前关注根目录下pytest.ini文件，conftest.py文件，了解用例执行位置，标记，和相关前置后置条件
 
-## 问题
+## 问题处理
 
 * 出现问题，运行atx_uninstall.py，然后重新执行
+
+## api
+
+```
+设备对象初始化
+from uiauto.android.device import connect, AndroidDevice
+
+conn = connect()
+device = AndroidDevice(conn)
+print(device.d.info)
+```
+
+```
+adb命令
+
+device.adb_fp.adb.run_adb_cmd("shell am start -a com.gm.teenmode.app.LAUNCH")
+device.adb_fp.adb.push()
+device.adb_fp.adb.pull
+```
+
+```
+ocr文字识别
+
+device.ocr.image_to_text("xxx")
+```
+
+```
+app
+
+device.app.serial
+device.app(package=None, activity=None).get_info()
+device.app(package=None, activity=None).start()
+device.app(package=None, activity=None).stop()
+device.app(package=None, activity=None).install()
+device.app(package=None, activity=None).uninstall()
+device.app.current()
+device.app.list_running()
+```
+
+```
+page
+
+device.page.source
+device.page.find_element(x,y)
+```
+
+```
+rotation
+
+device.rotation.left
+device.rotation.right
+device.rotation.back
+```
+
+```
+swipe
+
+device.swipe.down()
+device.swipe.up()
+device.swipe.left()
+device.swipe.right()
+device.swipe.down().until_exists(text=xxx)
+```
+
+```
+screenshot
+
+device.screenshot.save('xxx.png')
+device.screenshot.save_grid('xxx.png')
+device(text="xxx").screenshot("xxx.png")
+```
+
+```
+屏幕尺寸
+
+device.window_size
+是否处于分屏状态
+device.is_multi_window_mode
+```
+
+```
+click
+
+device.click(text=xxx)
+device.click(resourceId=xxx)
+device.click(xpath=xxx)
+device.click(x,y)
+```
+
+```
+press
+
+device.press("home")
+device.press("back")
+```
+
+```
+element
+
+device.get_element(text=xxx)
+device.get_element(xpath=xxx)
+```
+
+```
+assert
+
+device.assert_exist(text=xxx)
+device.assert_exist(xpath=xxx)
+device.assert_not_exist(text=xxx)
+```
 
 ## 性能数据名词解析
 
@@ -135,42 +245,41 @@ Traffic（网络流量)
 * pid_tx：下行流量
 * pid_total：总流量
 
-
-    root
-    └── pytest_cmdline_main
-    ├── pytest_plugin_registered
-    ├── pytest_configure
-    │ └── pytest_plugin_registered
-    ├── pytest_sessionstart
-    │ ├── pytest_plugin_registered
-    │ └── pytest_report_header
-    ├── pytest_collection
-    │ ├── pytest_collectstart
-    │ ├── pytest_make_collect_report
-    │ │ ├── pytest_collect_file
-    │ │ │ └── pytest_pycollect_makemodule
-    │ │ └── pytest_pycollect_makeitem
-    │ │ └── pytest_generate_tests
-    │ │ └── pytest_make_parametrize_id
-    │ ├── pytest_collectreport
-    │ ├── pytest_itemcollected
-    │ ├── pytest_collection_modifyitems
-    │ └── pytest_collection_finish
-    │ └── pytest_report_collectionfinish
-    ├── pytest_runtestloop
-    │ └── pytest_runtest_protocol
-    │ ├── pytest_runtest_logstart
-    │ ├── pytest_runtest_setup
-    │ │ └── pytest_fixture_setup
-    │ ├── pytest_runtest_makereport
-    │ ├── pytest_runtest_logreport
-    │ │ └── pytest_report_teststatus
-    │ ├── pytest_runtest_call
-    │ │ └── pytest_pyfunc_call
-    │ ├── pytest_runtest_teardown
-    │ │ └── pytest_fixture_post_finalizer
-    │ └── pytest_runtest_logfinish
-    ├── pytest_sessionfinish
-    │ └── pytest_terminal_summary
-    └── pytest_unconfigure
+  root
+  └── pytest_cmdline_main
+  ├── pytest_plugin_registered
+  ├── pytest_configure
+  │ └── pytest_plugin_registered
+  ├── pytest_sessionstart
+  │ ├── pytest_plugin_registered
+  │ └── pytest_report_header
+  ├── pytest_collection
+  │ ├── pytest_collectstart
+  │ ├── pytest_make_collect_report
+  │ │ ├── pytest_collect_file
+  │ │ │ └── pytest_pycollect_makemodule
+  │ │ └── pytest_pycollect_makeitem
+  │ │ └── pytest_generate_tests
+  │ │ └── pytest_make_parametrize_id
+  │ ├── pytest_collectreport
+  │ ├── pytest_itemcollected
+  │ ├── pytest_collection_modifyitems
+  │ └── pytest_collection_finish
+  │ └── pytest_report_collectionfinish
+  ├── pytest_runtestloop
+  │ └── pytest_runtest_protocol
+  │ ├── pytest_runtest_logstart
+  │ ├── pytest_runtest_setup
+  │ │ └── pytest_fixture_setup
+  │ ├── pytest_runtest_makereport
+  │ ├── pytest_runtest_logreport
+  │ │ └── pytest_report_teststatus
+  │ ├── pytest_runtest_call
+  │ │ └── pytest_pyfunc_call
+  │ ├── pytest_runtest_teardown
+  │ │ └── pytest_fixture_post_finalizer
+  │ └── pytest_runtest_logfinish
+  ├── pytest_sessionfinish
+  │ └── pytest_terminal_summary
+  └── pytest_unconfigure
 
