@@ -14,15 +14,15 @@ lark:
 pytest:
   - --reruns=1  # 失败重测次数
   - --reruns-delay=2 # 失败重测间隔
-  - --count=1 # 循环次数
+  - --count=40 # 循环次数
   - --random-order # 随机执行
-  - D:\pyauto\repos\GM\TeenDriver\test_teen_driver.py::test_427292  # 脚本选择 注释执行repos目录下所有用例
+#  - D:\pyauto\repos\GM\TeenDriver\test_teen_driver.py::test_427292  # 脚本选择 注释执行repos目录下所有用例
 #  - D:\pyauto\repos\GM\TeenDriver\test_teen_driver.py::test_399718  # 脚本选择 注释执行repos目录下所有用例
 
 # 测试对象性能监控 logcat, memory, cpu, fps, thread_num, 确保测试对象日期时间正确
 perf:
   # 性能监控开关
-  switch: False
+  switch: True
   # 对象apk
   package: com.gm.hmi.settings
   frequency: 5

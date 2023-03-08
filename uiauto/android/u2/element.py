@@ -462,24 +462,6 @@ class AndroidElement:
         watcher = Watcher(self.device, name)
         watcher.when_exists(self).click(self)
 
-    def display_top(self):
-        """
-        使元素显示在屏幕上半区域 0.2 ~ 0.5，注意与display不同
-
-        :return:
-        """
-        try:
-            self.scroll()
-        except ElementNotFoundError:
-            pass
-        self.update_info()
-        l, t, r, b = self.bounds.unpack()
-        if b / self.device.height >= 0.5:
-            self.swipe_up()
-            return
-        elif t / self.device.height <= 0.2:
-            self.device.swipe()  # TODO
-
     def screenshot(self, filename=None, fmt='pillow'):
         """
         元素截图

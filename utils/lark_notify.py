@@ -142,11 +142,31 @@ class FeiShuTalkChatBot:
                             [
                                 {
                                     "tag": "text",
+                                    "text": "开 始 时 间 : "
+                                },
+                                {
+                                    "tag": "text",
+                                    "text": f"{self.metrics.start_time}"
+                                },
+                            ],
+                            [
+                                {
+                                    "tag": "text",
+                                    "text": "结 束 时 间 : "
+                                },
+                                {
+                                    "tag": "text",
+                                    "text": f"{self.metrics.stop_time}"
+                                },
+                            ],
+                            [
+                                {
+                                    "tag": "text",
                                     "text": "时 长 : "
                                 },
                                 {
                                     "tag": "text",
-                                    "text": f"{self.metrics.time}\n"
+                                    "text": f"{self.metrics.duration}"
                                 },
                             ],
                             [

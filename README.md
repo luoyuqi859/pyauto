@@ -83,86 +83,103 @@ device.ocr.image_to_text("xxx")
 ```
 app
 
-device.app.serial
-device.app(package=None, activity=None).get_info()
-device.app(package=None, activity=None).start()
-device.app(package=None, activity=None).stop()
-device.app(package=None, activity=None).install()
-device.app(package=None, activity=None).uninstall()
-device.app.current()
-device.app.list_running()
+device.app(package=None, activity=None).get_info() 获取应用信息
+device.app(package=None, activity=None).start() 应用启动
+device.app(package=None, activity=None).stop() 应用停止
+device.app(package=None, activity=None).install() 应用下载
+device.app(package=None, activity=None).uninstall() 应用卸载
+device.app.current() 获取当前应用信息
+device.app.list_running() 列出所有运行中的 app
 ```
 
 ```
 page
 
-device.page.source
-device.page.find_element(x,y)
+device.page.source  获取pagesource
+device.page.find_element(x,y) 解析获取位于 (x, y) 坐标的元素
 ```
 
 ```
 rotation
 
-device.rotation.left
-device.rotation.right
-device.rotation.back
+device.rotation.left 设置旋转方向为左
+device.rotation.right 设置旋转方向为右
+device.rotation.back 返回旋转方向
 ```
 
 ```
 swipe
 
-device.swipe.down()
-device.swipe.up()
-device.swipe.left()
-device.swipe.right()
-device.swipe.down().until_exists(text=xxx)
+device.swipe.down() 向下滑动
+device.swipe.up() 向上滑动
+device.swipe.left() 向左滑动
+device.swipe.right() 向右滑动
+device.swipe.down().until_exists(text=xxx) 向下滑动到xxx元素出现
 ```
 
 ```
 screenshot
 
-device.screenshot.save('xxx.png')
-device.screenshot.save_grid('xxx.png')
-device(text="xxx").screenshot("xxx.png")
+device.screenshot.save('xxx.png')  全屏截图
+device.screenshot.save_grid('xxx.png') 全屏截图携带绘制表格
+device(text="xxx").screenshot("xxx.png") 元素截图
 ```
 
 ```
 屏幕尺寸
 
-device.window_size
-是否处于分屏状态
-device.is_multi_window_mode
+device.window_size 
+device.is_multi_window_mode 是否处于分屏状态
 ```
 
 ```
 click
 
-device.click(text=xxx)
-device.click(resourceId=xxx)
-device.click(xpath=xxx)
-device.click(x,y)
+device.click(text=xxx)  元素点击
+device.click(resourceId=xxx) 元素点击
+device.click(xpath=xxx) 元素点击
+device.click(x,y) 坐标点击
 ```
 
 ```
 press
 
-device.press("home")
-device.press("back")
+device.press("home") 按键HOME
+device.press("back") 按键返回
 ```
 
 ```
 element
 
-device.get_element(text=xxx)
-device.get_element(xpath=xxx)
+device.get_element(text=xxx) 获取元素
+device.get_element(xpath=xxx) 获取元素
+device(text=xxx).info 获取元素info
+device(text=xxx).text  获取元素text
+device(text=xxx).resource_id  获取元素resource_id
+device(text=xxx).bounds  获取元素bounds
+device(text=xxx).position  获取元素position
+device(text=xxx).class_name  获取元素class_name
+device(text=xxx).selectable  获取元素selectable
+device(text=xxx).selected  获取元素selected
+device(text=xxx).checked  获取元素checked
+device(text=xxx).checkable  获取元素checkable
+device(text=xxx).focused  获取元素focused
+device(text=xxx).focusable  获取元素focusable
+device(text=xxx).clickable  获取元素clickable
+device(text=xxx).long_clickable  获取元素long_clickable
+device(text=xxx).enabled  获取元素enabled
+device(text=xxx).count  获取元素count
+device(text=xxx).click()  元素点击
 ```
 
 ```
 assert
 
-device.assert_exist(text=xxx)
-device.assert_exist(xpath=xxx)
-device.assert_not_exist(text=xxx)
+device.assert_exist(text=xxx) 断言元素存在
+device.assert_exist(xpath=xxx) 断言元素存在
+device.assert_not_exist(text=xxx) 断言元素不存在
+device(text=xxx).assert_image(xxx.png, similarity=0.8) 断言图片相似度
+assert device(text=xxx).enabled == True, "element enabled asser failed"
 ```
 
 ## 性能数据名词解析

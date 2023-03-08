@@ -15,7 +15,7 @@ import allure
 from utils.log import logger
 from utils.model import TestMetrics
 from utils.path_fun import get_all_files
-from utils.time_fun import timeoperator
+from utils.time_fun import timeoperator, TimeManager
 
 
 class AllureDataCollect:
@@ -137,6 +137,7 @@ class AllureDataCollect:
                 data = json.load(file)
             _case_count = data['statistic']
             _time = data['time']
+
             keep_keys = {"passed", "failed", "broken", "skipped", "total"}
             run_case_data = {k: v for k, v in data['statistic'].items() if k in keep_keys}
             # 判断运行用例总数大于0
@@ -149,7 +150,9 @@ class AllureDataCollect:
                 # 如果未运行用例，则成功率为 0.0
                 run_case_data["pass_rate"] = 0.0
             # 收集用例运行时长
-            run_case_data['time'] = _time if run_case_data['total'] == 0 else timeoperator.s_to_hms(
+            run_case_data['start_time'] = TimeManager.timestamp_to_str(_time["start"])
+            run_case_data['stop_time'] = TimeManager.timestamp_to_str(_time["stop"])
+            run_case_data['duration'] = _time if run_case_data['total'] == 0 else timeoperator.s_to_hms(
                 _time['duration'] / 1000)
             run_case_data['retry'] = self.get_retry_num()
             return TestMetrics(**run_case_data)
@@ -220,5 +223,6 @@ def attach_text(body, name):
 
 if __name__ == '__main__':
     from conf import settings
-    allure_data = AllureDataCollect(settings.root_path / "report" / "GM" / "test")
+    allure_data = AllureDataCollect(settings.root_path / "report" / "GM" / "2023-03-07-18-18-58")
     f = allure_data.get_case_count()
+    a = f

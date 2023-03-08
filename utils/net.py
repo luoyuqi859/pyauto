@@ -35,6 +35,30 @@ def get_host_ip():
         s.connect(('8.8.8.8', 80))
         return s.getsockname()[0]
 
+
+def get_local_ip():
+    """
+    copy and paste from
+    https://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib
+    """
+    if os.environ.get('CHAT_HOST_IP', False):
+        return os.environ['CHAT_HOST_IP']
+    try:
+        ip = [l for l in (
+            [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if
+             not ip.startswith("127.")][:1], [
+                [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s
+                 in
+                 [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][
+            0][
+            0]
+    except OSError as e:
+        print(e)
+        return '127.0.0.1'
+
+    return ip
+
+
 def download(url, filename=None, timeout=None, use_cache=True, headers=None):
     if not filename:
         filename = os.path.join(tempfile.gettempdir(), os.path.basename(url))
@@ -61,3 +85,8 @@ def download(url, filename=None, timeout=None, use_cache=True, headers=None):
     shutil.move(filename + '.part', filename)
     # logger.info('Finished!')
     return filename
+
+
+if __name__ == '__main__':
+    f = get_local_ip()
+    print(f)

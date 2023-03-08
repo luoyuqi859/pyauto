@@ -56,5 +56,7 @@ class TestMetrics:
     skipped: int
     total: int
     pass_rate: float
-    time: Text
+    start_time: Text
+    stop_time: Text
+    duration: Text
     retry: int

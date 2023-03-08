@@ -32,10 +32,6 @@ class App:
         self.url = url
         return self
 
-    @property
-    def serial(self):
-        return self.device.serial
-
     def get_info(self):
         """
         获取应用信息
