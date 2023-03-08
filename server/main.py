@@ -56,7 +56,7 @@ manager = ConnectionManager()
 
 @app.on_event("startup")
 def startup_event():
-    os.system(f"{settings.root_path}/server/xxx.html")
+    os.system(f"{settings.root_path}/server/index.html")
 
 
 @app.websocket("/ws/{user}")

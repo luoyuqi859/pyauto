@@ -20,7 +20,6 @@
 
     ├── conf                         // 配置相关目录
     ├── libs                         // 依赖库，需要本地化后续维护修改
-    ├── plugins                      // 框架相关插件
     ├── report                       // 测试执行完毕所有数据存放报告,会自动生成，可随意删除
     ├── repos                        // 脚本仓库，存放各个测试脚本，只能放在这个目录下
     ├── server                       // 服务相关
@@ -43,6 +42,7 @@
 * 测试区域选择1, conf/config.yaml中pytest选项添加想要测试的路径
 * 测试区域选择2,python run.py --case 路径用例，路径用例依据pytest规则，如 python run.py --case D:
   \pyauto\repos\lxl\test_xxx.py::test_xxx,存在多个执行路径用";"分开
+* 建议执行方式: 去conf/config.yaml中选择想要开启的功能和填写测试路径,去根目录下双击run.bat执行
 
 ## 框架掌握要点
 

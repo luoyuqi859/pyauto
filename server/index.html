@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <script src="https://unpkg.com/vue@next"></script>
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-plus"></script>
+    <title>PyAuto 自动化测试</title>
+    <style>
+      body {
+          background: #ebebeb;
+          font-size: 14px;
+          text-align: center;
+      }
+
+      div {
+          margin: 0 auto;
+          display: inline-block;
+          text-align: left;
+      }
+
+      span {
+          width: 120px;
+          display: inline-block;
+          text-align: left;
+      }
+
+      h3 {
+          text-align: center;
+      }
+      .el-row {
+        margin-bottom: 20px;
+      }
+      .el-row:last-child {
+        margin-bottom: 0;
+      }
+      .el-col {
+        border-radius: 4px;
+      }
+
+      .grid-content {
+        border-radius: 4px;
+        min-height: 36px;
+      }
+
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <h3>PyAuto 自动化测试</h3>
+    <!--element-plus 的 按钮-->
+    <el-row>
+        <el-row :gutter="20">
+            <el-col :span="8">
+<!--                <div class="grid-content ep-bg-purple"/>-->
+                xxx
+            </el-col>
+            <el-col :span="8">
+<!--                <div class="grid-content ep-bg-purple"/>-->
+                xxx
+            </el-col>
+            <el-col :span="8">
+<!--                <div class="grid-content ep-bg-purple"/>-->
+                xxx
+            </el-col>
+        </el-row>
+
+        <br>
+</div>
+</body>
+<script>
+    // =================== vue3的 Composition API 的含义
+    const testManage = () => {
+    const value = Vue.ref('你好，世界')
+    const click = () => {
+      value.value = '好的，收到' + new Date().valueOf()
+    }
+
+    return {
+      value,
+      click
+    }
+  }
+    // vue3的对象
+    const vue3Composition = {
+    setup() { // 传说中的setup
+        // 使用外面的定义，分解setup内部的代码
+      const { value, click } = testManage()
+
+      return {  // 返回给模板，否则模板访问不到。
+        value,
+        click,
+      }
+    }
+  }
+    // 创建vue3的实例
+    const vm = Vue.createApp(vue3Composition)
+    .use(ElementPlus) // 加载ElementPlus
+    .mount('#app') // 挂载Vue的app实例
+
+
+</script>
+</html>

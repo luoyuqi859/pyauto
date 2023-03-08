@@ -13,8 +13,8 @@ import traceback
 import pytest
 
 from conf import settings
-from plugins.py.common import CommonPlugin
-from utils import config, net
+from pytest_plugins import CommonPlugin
+from utils import config
 from utils.allure_fun import AllureDataCollect
 from utils.excel_fun import ErrorCaseExcel
 from utils.lark_notify import FeiShuTalkChatBot
