@@ -15,6 +15,7 @@
 * 测试对象性能监控, memory,logcat,fps,cpu,thread_num
 * 增加minicap对sdk30,31,32的支持，加快截图速度
 * ocr文字识别
+* 支持windows桌面软件的自动化操作,已实现GMVehicleSimulator软件的自启动,模式切换,退出操作等
 
 ## 目录结构
 
