@@ -30,7 +30,7 @@
 
 ## 安装教程
 
-* 首先，执行本框架之前，需要搭建好 python、python版本:3.9.6
+* 首先，执行本框架之前，需要搭建好 python、python版本:3.9.6, java jdk环境
 * 进入libs/uiautomator2目录下，点击install.bat，安装uiautomator2相关依赖（本地uiautomator2,不要使用pip install
   uiautomator2）
 * 进入libs目录下执行 install.bat， 安装框架相关依赖
@@ -262,7 +262,8 @@ Traffic（网络流量)
 * pid_rx：上行流量
 * pid_tx：下行流量
 * pid_total：总流量
-
+------
+```
   root
   └── pytest_cmdline_main
   ├── pytest_plugin_registered
@@ -300,4 +301,6 @@ Traffic（网络流量)
   ├── pytest_sessionfinish
   │ └── pytest_terminal_summary
   └── pytest_unconfigure
+```
+
 
