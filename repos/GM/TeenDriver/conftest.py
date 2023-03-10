@@ -15,7 +15,8 @@ from uiauto.android.device import AndroidDevice
 
 @pytest.fixture(scope="function", params=None, autouse=True, ids=None, name=None)
 def teen_driver_start(d_obj: AndroidDevice):
-    d_obj.press("home")
+    while not d_obj(text="Settings").exists:
+        d_obj.press("home")
     with allure.step('重置GMVehicleSimulator已发送命令'):
         GMS.sendSignal(Signal='TnDrvPINStrd', Value=0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='TeenDrvReq', Value=0, Type='Signal', Mode='HS')
@@ -35,7 +36,8 @@ def teen_driver_start(d_obj: AndroidDevice):
     yield
     with allure.step('关掉TeenDriver'):
         GMS.sendSignal(Signal='TeenDrvFtrAvl', Value=0, Type='Signal', Mode='HS')
-        d_obj.press("home")
+        while not d_obj(text="Settings").exists:
+            d_obj.press("home")
 
 
 @pytest.fixture(scope="function", params=None, autouse=False, ids=None, name=None)

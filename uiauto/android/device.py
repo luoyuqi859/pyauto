@@ -48,9 +48,9 @@ def connect(serial=None) -> u2.Device:
     serial = serial or get_device_id()
     d = u2.Device(serial)
     d.implicitly_wait(settings.ELEMENT_WAIT_TIMEOUT)
-    d.settings['operation_delay'] = (settings.FORCE_STEP_INTERVAL_BEFORE, settings.FORCE_STEP_INTERVAL_AFTER)
-    d.settings['operation_delay_methods'] = ['click', 'swipe', 'drag', 'press']
-    d.jsonrpc.setConfigurator({"waitForIdleTimeout": 100})
+    # d.settings['operation_delay'] = (settings.FORCE_STEP_INTERVAL_BEFORE, settings.FORCE_STEP_INTERVAL_AFTER)
+    # d.settings['operation_delay_methods'] = ['click', 'swipe', 'drag', 'press']
+    # d.jsonrpc.setConfigurator({"waitForIdleTimeout": 100})
     return d
 
 

@@ -96,10 +96,6 @@ class AndroidElement:
         return self.info.get('resource-id', '') or self.info.get('resourceName', '')
 
     @property
-    def content_desc(self):
-        return self.info.get('contentDescription', '') or self.info.get('content-desc', '')
-
-    @property
     def text(self):
         return self.info.get('text', '')
 

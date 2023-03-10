@@ -171,10 +171,10 @@ def test_372410(d_obj: AndroidDevice):
     with allure.step('8. Press Ok'):
         d_obj.click(xpath=element.ok)
     with allure.step('9. Teen pin menu screen will display'):
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
-        d_obj.assert_exist(xpath=element.view_report_card)
-        d_obj.assert_exist(xpath=element.teen_driver_settings)
-        d_obj.assert_exist(xpath=element.change_pin)
+        d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
+        d_obj.assert_exist(text="View Report Card")
+        d_obj.assert_exist(text="Teen Driver Settings")
+        d_obj.assert_exist(text="Change PIN")
 
 
 # @allure.title(
@@ -226,7 +226,7 @@ def test_385117(d_obj: AndroidDevice):
     with allure.step('17. Click Unlock'):
         d_obj.click(resourceId=element.enter)
     with allure.step('18. Click Change PIN'):
-        d_obj.click(xpath=element.change_pin)
+        d_obj.click(text="Change PIN")
     with allure.step('19. Enter a 4 digit PIN to setup Teen Driver'):
         d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
     with allure.step('20. Click Enter'):
@@ -241,10 +241,10 @@ def test_385117(d_obj: AndroidDevice):
         assert text == "Write down your new PIN. A forgotten PIN can only be reset at your dealer.To activate Teen Driver, you'll need to add the teen's key.", "assert text failed"
     with allure.step('24. Click OK in Teen Driver PIN set pop-up'):
         d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
-        d_obj.assert_exist(xpath=element.view_report_card)
-        d_obj.assert_exist(xpath=element.teen_driver_settings)
-        d_obj.assert_exist(xpath=element.change_pin)
+        d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
+        d_obj.assert_exist(text="View Report Card")
+        d_obj.assert_exist(text="Teen Driver Settings")
+        d_obj.assert_exist(text="Change PIN")
 
 
 @allure.title("To verify the Retry button functionality in PIN doesn't match error pop while changing the PIN")
@@ -284,7 +284,7 @@ def test_385119(d_obj: AndroidDevice):
     with allure.step('17. Click Unlock'):
         d_obj.click(resourceId=element.enter)
     with allure.step('18. Click Change PIN'):
-        d_obj.click(xpath=element.change_pin)
+        d_obj.click(text="Change PIN")
     with allure.step('19. Enter a 4 digit PIN to setup Teen Driver'):
         d_obj.click(text="1").click(text="2").click(text="3").click(text="4")
     with allure.step('20. Click Enter'):
@@ -299,10 +299,10 @@ def test_385119(d_obj: AndroidDevice):
         assert text == "Write down your new PIN. A forgotten PIN can only be reset at your dealer.To activate Teen Driver, you'll need to add the teen's key.", "assert text failed"
     with allure.step('24. Click OK in Teen Driver PIN set pop-up'):
         d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
-        d_obj.assert_exist(xpath=element.view_report_card)
-        d_obj.assert_exist(xpath=element.teen_driver_settings)
-        d_obj.assert_exist(xpath=element.change_pin)
+        d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
+        d_obj.assert_exist(text="View Report Card")
+        d_obj.assert_exist(text="Teen Driver Settings")
+        d_obj.assert_exist(text="Change PIN")
 
 
 # @allure.title("To verify seat belt restriction for both driver and front seat passenger with volume changes")
@@ -331,13 +331,13 @@ def test_391799(d_obj: AndroidDevice):
         d_obj.click(resourceId=element.enter)
     with allure.step('10. Click OK '):
         d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
     with allure.step('11. Send TeenDrvReq Signal ==> 5=Check_for_Teen_Key'):
         GMS.sendSignal(Signal='TeenDrvReq', Value=5, Type='Signal', Mode='HS')
     with allure.step('12. Send TeenDrvRsp Signal ==> 8=Key_Detected_As_NOT_Teen_Key'):
         GMS.sendSignal(Signal='TeenDrvRsp', Value=8, Type='Signal', Mode='HS')
     with allure.step('13. Click Add/Remove Teen Driver Keys'):
-        d_obj.click(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.click(text="Add / Remove Teen Driver Keys")
         d_obj.assert_exist(text="Add Teen Driver Key?")
         d_obj.assert_exist(text="Teen Driver restrictions will apply when this key is used.")
         d_obj.assert_exist(text="Add")
@@ -353,7 +353,7 @@ def test_391799(d_obj: AndroidDevice):
         assert text == 'Whenever this key is used, Teen Driver restrictions will apply.You can now configure Teen Driver Settings.', "assert text fail"
     with allure.step('17. Click OK button'):
         d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
 
 
 @allure.title("To verify Remove button in Remove Teen Driver Key process")
@@ -397,11 +397,11 @@ def test_391802(d_obj: AndroidDevice):
     GMS.sendSignal(Signal='TeenDrvRsp', Value=2, Type='Signal', Mode='HS')
     d_obj.click(resourceId=element.enter)
     d_obj.click(xpath=element.ok)
-    d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+    d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
     GMS.sendSignal(Signal='TeenDrvReq', Value=5, Type='Signal', Mode='HS')
     GMS.sendSignal(Signal='TeenDrvRsp', Value=7, Type='Signal', Mode='HS')
 
-    d_obj.click(xpath=element.add_or_remove_teen_driver_keys)
+    d_obj.click(text="Add / Remove Teen Driver Keys")
     d_obj.assert_exist(text="Remove Teen Driver Key?")
     d_obj.assert_exist(text="This key will no longer have Teen Driver restrictions.")
     d_obj.assert_exist(text="Remove")
@@ -412,7 +412,7 @@ def test_391802(d_obj: AndroidDevice):
     d_obj.assert_exist(text="Key Removed")
     d_obj.assert_exist(text="This key no longer has Teen Driver restrictions.")
     d_obj.click(xpath=element.ok)
-    d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+    d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
 
 
 @allure.title("To verify Clear All Keys and PIN Success process")
@@ -438,19 +438,19 @@ def test_394754(d_obj: AndroidDevice):
         d_obj.click(resourceId=element.enter)
     with allure.step('10. Click OK '):
         d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
     with allure.step('11. Click Clear PIN and All Teen Driver Keys'):
         d_obj.swipe.down()
-        d_obj.click(xpath=element.clear_pin_and_teen_driver_keys)
+        d_obj.click(text="Clear PIN and All Teen Driver Keys")
         d_obj.assert_exist(text="Clear PIN and all Teen Driver keys?")
         d_obj.assert_exist(text="This will clear your PIN and all Teen Driver keys.")
         d_obj.assert_exist(text="Clear")
         d_obj.assert_exist(text="Cancel")
     with allure.step('12. Click Cancel button'):
         d_obj.click(text="Cancel")
-        d_obj.assert_exist(xpath=element.clear_pin_and_teen_driver_keys)
+        d_obj.assert_exist(text="Clear PIN and All Teen Driver Keys")
     with allure.step('13. Click Clear PIN and All Teen Driver Keys'):
-        d_obj.click(xpath=element.clear_pin_and_teen_driver_keys)
+        d_obj.click(text="Clear PIN and All Teen Driver Keys")
     with allure.step('14. Send TeenDrvReq Signal ==> 6=Clear_Teen_Keys_and_PIN'):
         GMS.sendSignal(Signal='TeenDrvReq', Value=6, Type='Signal', Mode='HS')
     with allure.step('15. Send TeenDrvRsp Signal ==> 5=Teen_Key_Clear_Complete'):
@@ -483,15 +483,15 @@ def test_396972(d_obj: AndroidDevice):
         GMS.sendSignal(Signal='TeenDrvRsp', Value=1, Type='Signal', Mode='HS')
     with allure.step('8. Click Unlock'):
         d_obj.click(resourceId=element.enter)
-        d_obj.assert_exist(xpath=element.view_report_card)
+        d_obj.assert_exist(text="View Report Card")
     with allure.step('9. Click View Report Card'):
-        d_obj.click(xpath=element.view_report_card)
+        d_obj.click(text="View Report Card")
         d_obj.assert_exist(resourceId=element.report_card_reset_btn)
     with allure.step('10. Click back button in Report Card'):
         d_obj.click(resourceId=element.back)
-        d_obj.assert_exist(xpath=element.view_report_card)
+        d_obj.assert_exist(text="View Report Card")
     with allure.step('11. Click View Report Card'):
-        d_obj.click(xpath=element.view_report_card)
+        d_obj.click(text="View Report Card")
     with allure.step(
             '12. Send TRUE for below signal Teen Driver Report Card Available Display Data : Distance Driven - TDRCADD_DistDrvn'):
         GMS.sendSignal(Signal='TDRCADD_DistDrvn', Value=1, Type='Signal', Mode='HS')
@@ -567,7 +567,7 @@ def test_396972(d_obj: AndroidDevice):
         d_obj.assert_exist(text="Antilock Brake System Active: 0")
     with allure.step('24. Click back button'):
         d_obj.click(resourceId=element.back)
-        d_obj.assert_exist(xpath=element.view_report_card)
+        d_obj.assert_exist(text="View Report Card")
     with allure.step('25. Send FALSE for below signals'):
         GMS.sendSignal(Signal='TDRCADD_DistDrvn', Value=0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='TDRCADD_MaxSpd', Value=0, Type='Signal', Mode='HS')
@@ -582,7 +582,7 @@ def test_396972(d_obj: AndroidDevice):
         GMS.sendSignal(Signal='TDRCADD_StCtrlEvnts', Value=0, Type='Signal', Mode='HS')
         GMS.sendSignal(Signal='TDRCADD_ABSAtvEvt', Value=0, Type='Signal', Mode='HS')
     with allure.step('26. Click View Report Card'):
-        d_obj.click(xpath=element.view_report_card)
+        d_obj.click(text="View Report Card")
         time.sleep(1)
         d_obj.assert_exist(resourceId=element.report_card_reset_btn)
         d_obj.assert_not_exist(text="Distance Driven: 0 km")
@@ -621,9 +621,9 @@ def test_397412(d_obj: AndroidDevice):
     with allure.step('8. Click Set  '):
         d_obj.click(resourceId=element.enter)
         d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.view_report_card)
+        d_obj.assert_exist(text="View Report Card")
     with allure.step('9. Click View Report Card'):
-        d_obj.click(xpath=element.view_report_card)
+        d_obj.click(text="View Report Card")
         d_obj.assert_exist(resourceId=element.report_card_reset_btn)
     with allure.step(
             '10. Send signal for OVERSPEED WARNINGS (VALUE = 1000) Teen Driver Report Card Available Display Data : Overspeed Events / TDRCADD_OvSpdEvnt Teen Driver OverSpeed Events Report / TnDrvOvSpdEvntsRpt'):
@@ -759,7 +759,7 @@ def test_397412(d_obj: AndroidDevice):
         d_obj.click(resourceId=element.enter)
         d_obj.click(xpath=element.ok)
     with allure.step('35. Click View Report Card'):
-        d_obj.click(xpath=element.view_report_card)
+        d_obj.click(text="View Report Card")
         d_obj.assert_exist(text="Distance Driven: 0 km")
         d_obj.assert_exist(text="Maximum Speed: 0.0 km/h")
         d_obj.assert_exist(text="Overspeed Warnings: 0")
@@ -799,13 +799,13 @@ def test_397659(d_obj: AndroidDevice):
         d_obj.click(resourceId=element.enter)
     with allure.step('10. Click OK '):
         d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
     with allure.step('11. Send TeenDrvReq Signal ==> 5=Check_for_Teen_Key'):
         GMS.sendSignal(Signal='TeenDrvReq', Value=5, Type='Signal', Mode='HS')
     with allure.step('12. Send TeenDrvRsp Signal ==> 6=Key_Not_Present'):
         GMS.sendSignal(Signal='TeenDrvRsp', Value=6, Type='Signal', Mode='HS')
     with allure.step('13. Click Add/Remove Teen Keys'):
-        d_obj.click(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.click(text="Add / Remove Teen Driver Keys")
         d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
         text = d_obj(resourceId=element.txt_dialog_message).text.replace("\n", "")
         assert text == 'Place the key you want to add or remove in the transmitter pocket.See your Owner’s Manual for details.', "assert text fail"
@@ -858,13 +858,13 @@ def test_397660(d_obj: AndroidDevice):
         d_obj.click(resourceId=element.enter)
     with allure.step('10. Click OK '):
         d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
     with allure.step('11. Send TeenDrvReq Signal ==> 5=Check_for_Teen_Key'):
         GMS.sendSignal(Signal='TeenDrvReq', Value=5, Type='Signal', Mode='HS')
     with allure.step('12. Send TeenDrvRsp Signal ==> 8=Key_Detected_As_NOT_Teen_Key'):
         GMS.sendSignal(Signal='TeenDrvRsp', Value=8, Type='Signal', Mode='HS')
     with allure.step('13. Click Add/Remove Teen Keys'):
-        d_obj.click(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.click(text="Add / Remove Teen Driver Keys")
         d_obj.assert_exist(text="Add Teen Driver Key?")
         d_obj.assert_exist(text="Teen Driver restrictions will apply when this key is used.")
         d_obj.assert_exist(text="Add")
@@ -882,7 +882,7 @@ def test_397660(d_obj: AndroidDevice):
         d_obj.assert_exist(text="Cancel")
     with allure.step('17. Click Cancel Button'):
         d_obj.click(text="Cancel")
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
 
 
 #
@@ -910,13 +910,13 @@ def test_397660(d_obj: AndroidDevice):
 #         d_obj.click(resourceId=element.enter)
 #     with allure.step('10. Click OK '):
 #         d_obj.click(xpath=element.ok)
-#         d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+#         d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
 #     with allure.step('11. Send TeenDrvReq Signal ==> 5=Check_for_Teen_Key'):
 #         GMS.sendSignal(Signal='TeenDrvReq', Value=5, Type='Signal', Mode='HS')
 #     with allure.step('12. Send TeenDrvRsp Signal ==> 8=Key_Detected_As_NOT_Teen_Key'):
 #         GMS.sendSignal(Signal='TeenDrvRsp', Value=8, Type='Signal', Mode='HS')
 #     with allure.step('13. Click Add/Remove Teen Keys'):
-#         d_obj.click(xpath=element.add_or_remove_teen_driver_keys)
+#         d_obj.click(text="Add / Remove Teen Driver Keys")
 #         d_obj.assert_exist(text="Add Teen Driver Key?")
 #         d_obj.assert_exist(text="Teen Driver restrictions will apply when this key is used.")
 #         d_obj.assert_exist(text="Add")
@@ -934,7 +934,7 @@ def test_397660(d_obj: AndroidDevice):
 #         d_obj.assert_exist(text="Cancel")
 #     with allure.step('17. Click Cancel Button'):
 #         d_obj.click(text="Cancel")
-#         d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+#         d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
 
 @allure.title(
     "To verify Driver Workload and Ignition Restrictions in UxR is NO_SETUP - Teen Driver Settings from Teen Driver app")
@@ -1026,13 +1026,13 @@ def test_399762(d_obj: AndroidDevice):
         d_obj.click(resourceId=element.enter)
     with allure.step('10. Click OK'):
         d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
     with allure.step('11. Send TeenDrvReq Signal ==> 5=Check_for_Teen_Key'):
         GMS.sendSignal(Signal='TeenDrvReq', Value=5, Type='Signal', Mode='HS')
     with allure.step('12. Send TeenDrvRsp Signal ==> 7=Key_Detected_As_Teen_Key'):
         GMS.sendSignal(Signal='TeenDrvRsp', Value=7, Type='Signal', Mode='HS')
     with allure.step('13. Click Add/Remove Teen Keys'):
-        d_obj.click(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.click(text="Add / Remove Teen Driver Keys")
         d_obj.assert_exist(text="Remove Teen Driver Key?")
     with allure.step('14. Send TeenDrvReq Signal ==> 4=Clear_Teen_Key'):
         GMS.sendSignal(Signal='TeenDrvReq', Value=4, Type='Signal', Mode='HS')
@@ -1076,7 +1076,7 @@ def test_399762(d_obj: AndroidDevice):
         GMS.sendSignal(Signal='TeenDrvRsp', Value=2, Type='Signal', Mode='HS')
         d_obj.click(resourceId=element.enter)
         d_obj.click(xpath=element.ok)
-        d_obj.assert_exist(xpath=element.add_or_remove_teen_driver_keys)
+        d_obj.assert_exist(text="Add / Remove Teen Driver Keys")
 
 
 @allure.title(

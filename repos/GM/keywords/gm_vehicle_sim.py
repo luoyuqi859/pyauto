@@ -216,12 +216,12 @@ class GMSignal():
         if isinstance(Signal, dict):
             for i in Signal:
                 entry = {'Type': Type, 'Mode': Mode, 'Name': i, 'Value': str(Signal[i])}
-                logger.info(f"will send Signal: {i} , value: {str(Signal[i])}")
+                logger.success(f"send Signal: {i} , value: {str(Signal[i])}")
                 payload_Tx.append(entry)
         # entry = can.Message(arbitration_id=0x4C1, data=[0x01, 0x02, 0x03, 0x04, 0x05, 0x06], dlc=0x8, extended_id=False)
         else:
             entry = {'Type': Type, 'Mode': Mode, 'Name': Signal, 'Value': str(Value)}
-            logger.info(f"will send Signal: {Signal} , value: {str(Value)}")
+            logger.success(f"send Signal: {Signal} , value: {str(Value)}")
             payload_Tx.append(entry)
         _gmVehicleSim.open()
 
