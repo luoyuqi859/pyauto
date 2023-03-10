@@ -5,6 +5,7 @@
 @File: conftest
 @Created: 2023/2/16 19:23
 """
+import io
 
 import allure
 import pytest
@@ -38,7 +39,10 @@ def pytest_runtest_makereport(item, call):
         # 添加allure报告截图
         if device is not None:
             logger.warning("用例出错,即将截图")
-            allure.attach(device.d.screenshot(format='base64'), "失败截图", allure.attachment_type.PNG)
+            buffer = io.BytesIO()
+            screenshot = device.d.screenshot()
+            screenshot.convert("RGB").save(buffer, format='JPEG')
+            allure.attach(buffer.getvalue(), "失败截图", allure.attachment_type.PNG)
 
 
 @pytest.fixture(scope="session", params=None, autouse=True, ids=None, name=None)
@@ -84,7 +88,6 @@ def performance(d_obj):
             d.all_handle(path=settings.perf_path)
         except Exception as e:
             logger.error(e)
-
 
 # def pytest_report_teststatus(report, config):
 #     """自定义测试结果"""

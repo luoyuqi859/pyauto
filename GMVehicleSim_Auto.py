@@ -43,5 +43,5 @@ def gm_my23_vcu_close():
 
 
 if __name__ == '__main__':
-    # gm_my23_vcu_ecomate_open(r'D:\vcu\GMVehicleSimulator\GMVehicleSim.exe')
-    gm_my23_vcu_close()
+    gm_my23_vcu_ecomate_open(r'D:\vcu\GMVehicleSimulator\GMVehicleSim.exe')
+    # gm_my23_vcu_close()
