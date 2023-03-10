@@ -31,8 +31,6 @@
 ## 安装教程
 
 * 首先，执行本框架之前，需要搭建好 python、python版本:3.9.6, java jdk环境
-* 进入libs/uiautomator2目录下，点击install.bat，安装uiautomator2相关依赖（本地uiautomator2,不要使用pip install
-  uiautomator2）
 * 进入libs目录下执行 install.bat， 安装框架相关依赖
 * 框架运行入口 run.py
 
