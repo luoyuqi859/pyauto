@@ -10,7 +10,7 @@ import time
 from PIL import Image, ImageFont, ImageDraw
 
 from conf import settings
-from utils.log import logger
+from loguru import logger
 
 
 def compress_image(infile):

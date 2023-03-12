@@ -18,7 +18,7 @@ from utils.allure_fun import AllureDataCollect
 from utils.dict import Dict
 from utils.excel_fun import ErrorCaseExcel
 from utils.lark_notify import FeiShuTalkChatBot
-from utils.log import logger
+from loguru import logger
 from utils.model import NotificationType
 
 

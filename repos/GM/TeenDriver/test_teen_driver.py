@@ -82,7 +82,7 @@ def test_350854(d_obj: AndroidDevice):
 
 
 @allure.title('To Verify the Code Set')
-def test_363660(d_obj:AndroidDevice):
+def test_363660(d_obj: AndroidDevice):
     with allure.step('1. Open Teen Driver Option'):
         d_obj.click(text="Settings").click(text="Vehicle").click(text="Teen Driver")
         d_obj.click(text="Continue")
@@ -1083,7 +1083,6 @@ def test_399762(d_obj: AndroidDevice):
     "To verify Speed Warning Switch On and Off in Teen Driver Settings Screen")
 def test_413361(d_obj: AndroidDevice):
     with allure.step('1. Navigate to Teen Driver Menu'):
-
         d_obj.click(text="Settings").click(text="Vehicle").click(text="Teen Driver")
         d_obj.click(text="Continue")
         d_obj.click(text="1").click(text="2").click(text="3").click(text="4")

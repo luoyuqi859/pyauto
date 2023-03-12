@@ -21,7 +21,7 @@ from uiauto.android.u2.selector import Selector
 from utils import image
 from utils.dict import Dict
 from utils.errors import ElementNotFoundError, TestFailedError, TestError, AdbError
-from utils.log import logger
+from loguru import logger
 
 
 def cvt_bool(value):

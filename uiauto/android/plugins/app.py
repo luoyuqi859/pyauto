@@ -14,7 +14,7 @@ from adbutils import AdbError
 from conf import settings
 from utils import net
 from utils.errors import UiaError
-from utils.log import logger
+from loguru import logger
 
 
 class App:

@@ -15,7 +15,7 @@ import traceback
 from conf import settings
 from uiauto.android.adb import ADB
 from utils.file_fun import FileOperator
-from utils.log import logger
+from loguru import logger
 from utils.time_fun import timeoperator
 
 

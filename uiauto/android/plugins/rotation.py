@@ -8,7 +8,7 @@
 import re
 from enum import Enum
 
-from utils.log import logger
+from loguru import logger
 
 NORMAL = 0
 LEFT = 1

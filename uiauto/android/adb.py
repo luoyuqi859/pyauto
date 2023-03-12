@@ -17,7 +17,7 @@ import whichcraft
 
 from utils.allure_fun import attach_text
 from utils.errors import AdbError
-from utils.log import logger
+from loguru import logger
 from utils.path_fun import Path
 from utils.s import Str
 from utils.time_fun import timeoperator
@@ -641,6 +641,9 @@ class AdbAndroidPath(Str):
             return self.__class__(self + other, self.adb)
         else:
             return self.__class__(self + '/' + other, self.adb)
+
+
+adb = AdbOperator()
 
 
 class ADB():

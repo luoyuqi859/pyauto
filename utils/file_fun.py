@@ -7,7 +7,7 @@
 """
 import os
 
-from utils.log import logger
+from loguru import logger
 
 
 class FileOperator:

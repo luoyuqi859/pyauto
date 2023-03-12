@@ -9,7 +9,7 @@
 from paddleocr import PaddleOCR
 
 from conf import settings
-from utils.log import logger
+from loguru import logger
 
 
 class Ocr:

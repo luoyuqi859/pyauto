@@ -8,7 +8,7 @@
 import math
 import time
 
-from utils.log import logger
+from loguru import logger
 
 
 class Swipe:

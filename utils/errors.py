@@ -9,7 +9,7 @@
 import traceback
 from contextlib import contextmanager
 
-from utils.log import logger
+from loguru import logger
 
 
 class BaseError(Exception):

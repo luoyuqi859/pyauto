@@ -5,7 +5,7 @@ import time
 import traceback
 from queue import Queue
 
-from utils.log import logger
+from loguru import logger
 
 
 class GMVehicleSim:

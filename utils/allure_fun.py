@@ -12,7 +12,7 @@ from typing import List, Text
 
 import allure
 
-from utils.log import logger
+from loguru import logger
 from utils.model import TestMetrics
 from utils.path_fun import get_all_files
 from utils.time_fun import timeoperator, TimeManager

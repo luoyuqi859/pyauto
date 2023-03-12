@@ -9,7 +9,7 @@ import time
 
 import pytest
 
-from utils.log import logger
+from loguru import logger
 from utils.time_fun import timeoperator
 
 

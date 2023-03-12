@@ -11,7 +11,7 @@ from uiauto.android.plugins.rotation import Rotation
 from utils import image
 from utils.errors import TestFailedError
 from utils.image import pillow2base64
-from utils.log import logger
+from loguru import logger
 from PIL import ImageFont, ImageDraw
 from PIL import Image
 

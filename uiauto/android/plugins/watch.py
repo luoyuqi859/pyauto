@@ -11,7 +11,7 @@ from uiautomator2 import UiObject
 
 from uiauto.android.u2.selector import Selector
 from utils.errors import AdbError, UiaError
-from utils.log import logger
+from loguru import logger
 
 
 class Watcher(object):

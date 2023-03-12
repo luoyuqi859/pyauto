@@ -5,7 +5,6 @@
 @File: log
 @Created: 2023/2/17 14:26
 """
-import time
 #
 from functools import wraps
 import os
@@ -14,10 +13,11 @@ import datetime
 import loguru
 
 from conf import settings
-from utils.time_fun import TimeOperator
-
 
 # 单例类的装饰器
+from utils.path_fun import Path
+
+
 def singleton_class_decorator(cls):
     """
     装饰器，单例类的装饰器
@@ -80,7 +80,7 @@ class Logger:
     def logger_add(self):
         from sys import stdout
         loguru.logger.configure(handlers=[{'sink': stdout}])
-        loguru.logger.add(settings.report_path / 'runtime_{time:YYYYMMDD}.log',
+        loguru.logger.add(self.get_log_path(),
                           # 日志创建周期
                           rotation='00:00',
                           # 保存

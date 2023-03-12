@@ -5,22 +5,28 @@
 @File: conftest
 @Created: 2023/2/16 19:23
 """
+import ast
 import io
 
 import allure
 import pytest
 
 from conf import settings
-from uiauto.android.device import AndroidDevice, connect
+from uiauto.android.device import AndroidDevice
+from uiauto.android.pool import device_pool
 from uiauto.perf.monitors import monitors
 from uiauto.perf.pref_data_fun import PrefDataFun
-from utils.log import logger
+from loguru import logger
 from utils import config
 
 
-@pytest.fixture(scope='session', autouse=True)
-def on_test_start():
-    logger.info(f"开始测试")
+def pytest_addoption(parser):
+    parser.addoption("--cmdopt", action="store", default="device_info", help=None)
+
+
+@pytest.fixture(scope="session")
+def cmd_opt(request):
+    return request.config.getoption("--cmdopt")
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -35,24 +41,50 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     res = outcome.get_result()
     if res.outcome in ['failed', 'error']:
-        device: AndroidDevice = item.funcargs.get("d_obj", None)
-        # 添加allure报告截图
-        if device is not None:
-            logger.warning("用例出错,即将截图")
-            buffer = io.BytesIO()
-            screenshot = device.d.screenshot()
-            screenshot.convert("RGB").save(buffer, format='JPEG')
-            allure.attach(buffer.getvalue(), "失败截图", allure.attachment_type.PNG)
+        for args, obj in item.funcargs.items():
+            if isinstance(obj, AndroidDevice):
+                logger.warning("用例出错,即将截图")
+                buffer = io.BytesIO()
+                screenshot = obj.d.screenshot()
+                screenshot.convert("RGB").save(buffer, format='PNG')
+                allure.attach(buffer.getvalue(), "失败截图", allure.attachment_type.PNG)
 
 
-@pytest.fixture(scope="session", params=None, autouse=True, ids=None, name=None)
-def d_obj():
-    u2 = connect()
-    d = AndroidDevice(device=u2)
-    d.minicap.install_minicap()
-    yield d
+@pytest.fixture(scope="session")
+def d_obj(cmd_opt):
+    """设备对象，支持多进程并发执行"""
+    serial = cmd_opt
+    device: AndroidDevice = device_pool.find_available_device(serial)
+    device.minicap.install_minicap()
+    logger.info(device.d.info)
+    logger.info("初始化设备成功")
+    yield device
     # 调试过程中可以注释删除ATX功能
-    uninstall_atx(d)
+    uninstall_atx(device)
+
+
+@pytest.fixture(scope="session")
+def d1():
+    """设备对象"""
+    device: AndroidDevice = device_pool.find_available_device()
+    device.minicap.install_minicap()
+    logger.info(device.d.info)
+    logger.info("初始化设备成功")
+    yield device
+    # 调试过程中可以注释删除ATX功能
+    uninstall_atx(device)
+
+
+@pytest.fixture(scope="session")
+def d2():
+    """设备对象"""
+    device: AndroidDevice = device_pool.find_available_device()
+    device.minicap.install_minicap()
+    logger.info(device.d.info)
+    logger.info("初始化设备成功")
+    yield device
+    # 调试过程中可以注释删除ATX功能
+    uninstall_atx(device)
 
 
 def uninstall_atx(d_obj: AndroidDevice):
@@ -69,13 +101,11 @@ def uninstall_atx(d_obj: AndroidDevice):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def performance(d_obj):
+def performance():
     """
     统计设备cpu情况
     @return:
     """
-    logger.info(d_obj.d.info)
-    logger.info("初始化设备成功")
     if not config.perf.switch:
         logger.info("没有开启性能监控功能")
         yield
@@ -84,8 +114,12 @@ def performance(d_obj):
         yield
         monitors.stop()
         try:
-            d = PrefDataFun()
-            d.all_handle(path=settings.perf_path)
+            from uiauto.android.adb import ADB
+            adb = ADB()
+            adb_devices = {item[0]: item[1] for item in adb.adb.devices()}
+            for serial, _ in adb_devices.items():
+                pref = PrefDataFun()
+                pref.all_handle(path=settings.perf_path / serial)
         except Exception as e:
             logger.error(e)
 

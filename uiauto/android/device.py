@@ -9,10 +9,14 @@ import math
 import re
 import subprocess
 import time
+from typing import Optional
+
+import requests
 
 from conf import settings
 import uiautomator2 as u2
-from uiauto.android.adb import ADB
+
+from uiauto.android.adb import ADB, adb
 from uiauto.android.android_keys import AndroidKeys
 from uiauto.android.parse import Bounds
 from uiauto.android.plugins.accessory import Accessory
@@ -36,21 +40,56 @@ from uiauto.android.u2.element import AndroidElement
 from uiauto.android.u2.selector import Selector
 from utils.errors import ElementNotFoundError, AdbError
 
-from utils.log import logger
+from loguru import logger
 
 
 def get_device_id():
     """获取设备id"""
-    return ADB().adb.serial
+    return adb.serial
+
+
+def _fix_wifi_addr(addr: str) -> Optional[str]:
+    if not addr:
+        return None
+    if re.match(r"^https?://", addr):  # eg: http://example.org
+        return addr
+
+    # make a request
+    # eg: 10.0.0.1, 10.0.0.1:7912
+    if ':' not in addr:
+        addr += ":7912"  # make default port 7912
+    try:
+        r = requests.get("http://" + addr + "/version", timeout=2)
+        r.raise_for_status()
+        return "http://" + addr
+    except:
+        return None
+
+
+def wifi_connect():
+    serial = get_device_id()
+    assert serial
+    u = u2.Device(serial)
+    wlan_ip = u.wlan_ip
+    adb.run_adb_cmd("tcpip 5555")
+    adb.kill_server()
+    adb.run_adb_cmd(f"connect {wlan_ip}:5555")
+    d = u2.connect(f"{wlan_ip}:5555")
+    return d
+
+
+def u2_settings(d: u2.Device):
+    d.implicitly_wait(settings.ELEMENT_WAIT_TIMEOUT)
+    d.settings['operation_delay'] = (settings.FORCE_STEP_INTERVAL_BEFORE, settings.FORCE_STEP_INTERVAL_AFTER)
+    d.settings['operation_delay_methods'] = ['click', 'swipe', 'drag', 'press']
+    d.jsonrpc.setConfigurator({"waitForIdleTimeout": 100})
 
 
 def connect(serial=None) -> u2.Device:
     serial = serial or get_device_id()
+    assert serial
     d = u2.Device(serial)
-    d.implicitly_wait(settings.ELEMENT_WAIT_TIMEOUT)
-    # d.settings['operation_delay'] = (settings.FORCE_STEP_INTERVAL_BEFORE, settings.FORCE_STEP_INTERVAL_AFTER)
-    # d.settings['operation_delay_methods'] = ['click', 'swipe', 'drag', 'press']
-    # d.jsonrpc.setConfigurator({"waitForIdleTimeout": 100})
+    u2_settings(d)
     return d
 
 

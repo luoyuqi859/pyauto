@@ -11,7 +11,7 @@ import allure
 import pandas as pd
 from matplotlib import pyplot as plt, gridspec
 
-from utils.log import logger
+from loguru import logger
 from utils.path_fun import Path
 
 

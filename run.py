@@ -7,22 +7,23 @@
 """
 import argparse
 import asyncio
-import os
 import shutil
-
+from concurrent.futures import ProcessPoolExecutor
 import pytest
 
 from conf import settings
 from pytest_plugins import CommonPlugin
+from uiauto.android.pool import device_pool
 from utils import config
 from utils.allure_fun import AllureDataCollect
+from utils.command import execute_command
 from utils.excel_fun import ErrorCaseExcel
 from utils.lark_notify import FeiShuTalkChatBot
 from utils.log import logger
 from utils.model import NotificationType
 
 
-async def pytest_run():
+async def pytest_run(d=None):
     logger.info(
         f"""
                            _ooOoo_
@@ -51,12 +52,12 @@ async def pytest_run():
     parser.add_argument('--case', type=str)
     args = parser.parse_args()
     case = args.case
-    pytest_args = [f'--alluredir={settings.report_tmp}', "--clean-alluredir"] + config.pytest
+    pytest_args = [f'--alluredir={settings.report_tmp}', "--clean-alluredir", f"--cmdopt={d}"] + config.pytest
     case_list = case.split(";") if case else []
     for i in case_list:
         pytest_args.append(i)
     pytest.main(pytest_args, plugins=[CommonPlugin()])
-    os.system(f"{settings.allure_bat} generate {settings.report_tmp} -o {settings.report_html} --clean")
+    execute_command(f"{settings.allure_bat} generate {settings.report_tmp} -o {settings.report_html} --clean")
 
 
 async def env_file_move():
@@ -81,14 +82,30 @@ async def notify():
         notification_mapping.get(config.notification_type)()
 
 
-async def main():
-    await pytest_run()
+async def main(d=None):
+    await pytest_run(d)
     await asyncio.create_task(env_file_move())
     await asyncio.create_task(excel_report())
     await asyncio.create_task(notify())
     # 程序运行之后，自动启动报告，如果不想启动报告，可注释这段代码,
-    os.system(f"{settings.allure_bat} open {settings.report_html} -p {settings.localhost_port}")
+    execute_command(f"{settings.allure_bat} open {settings.report_html} -p {settings.localhost_port}")
+
+
+def start(d=None):
+    """启动入口"""
+    try:
+        asyncio.run(main(d))
+    except KeyboardInterrupt:
+        logger.info("Interrupt catched")
+
+
+def startup():
+    pool = ProcessPoolExecutor()
+    devices = device_pool.devices
+    for serial, device in devices.items():
+        pool.submit(start, serial)
+    pool.shutdown()
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    startup()

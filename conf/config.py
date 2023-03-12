@@ -37,4 +37,5 @@ MAX_SWIPE_STEPS = 55  # 滑动一屏最多需要的步数，如果把屏幕分�
 LONG_CLICK_DURATION = 1  # 长按时长
 MIN_SWIPE = 100
 DEFAULT_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'  # 默认时间格式
+DEVICE_LISTENERS = []
 
