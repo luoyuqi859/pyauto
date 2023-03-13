@@ -8,7 +8,14 @@ notification_type: 0
 excel_report: True
 # 飞书通知
 lark:
-  webhook: https://open.feishu.cn/open-apis/bot/v2/hook/e8320b45-dc71-417e-b297-a69615bf3ac4
+  webhook: 
+
+# 多设备并发执行相同用例开关,
+# adb devices 查询到多个序列号时,如果开启此开关,则启动并发执行，每台设备跑相同的用例,最大设备数为电脑的CPU数,
+# adb devices 查询到多个序列号时,如果关闭此开关,则启动单用例设备交互执行,即一条用例存在多个设备对象
+# adb devices 查询到1个序列号时,此开关无效，均为单设备正常执行用例
+# 多设备情况下且并发开发打开，无法执行设备交互用例
+concurrent: False
 
 # pytest相关配置
 pytest:
@@ -16,13 +23,13 @@ pytest:
   - --reruns-delay=2 # 失败重测间隔
   - --count=1 # 循环次数
   - --random-order # 随机执行
-  - E:\py_work\pyauto\repos\lxl\test_xxx.py  # 脚本选择 注释执行repos目录下所有用例
+#  - D:\pyauto\repos\lxl\test_xxx.py  # 脚本选择 注释执行repos目录下所有用例
 #  - D:\pyauto\repos\GM\TeenDriver\test_teen_driver.py::test_399718  # 脚本选择 注释执行repos目录下所有用例
 
 # 测试对象性能监控 logcat, memory, cpu, fps, thread_num, 确保测试对象日期时间正确
 perf:
   # 性能监控开关
-  switch: True
+  switch: False
   # 对象apk
   package: com.gm.hmi.settings
   frequency: 5

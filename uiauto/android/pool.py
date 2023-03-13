@@ -85,6 +85,8 @@ class DevicePool:
 device_pool = DevicePool()
 
 if __name__ == '__main__':
-    d = device_pool.find_available_device(serial="b9f24c2d")
+    # d = device_pool.find_available_device()
     # d1 = device_pool.find_available_device()
+    d = device_pool.devices
     f = d
+

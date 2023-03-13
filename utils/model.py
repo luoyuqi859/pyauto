@@ -17,10 +17,6 @@ class Webhook(BaseModel):
     webhook: Union[Text, None]
 
 
-class Serial(BaseModel):
-    serial: Union[Text, None]
-
-
 class Pref(BaseModel):
     switch: bool
     package: Union[Text, None]
@@ -42,9 +38,9 @@ class Config(BaseModel):
     lark: "Webhook"
     notification_type: int = 0
     excel_report: bool
-    device: "Serial" = "auto"
     perf: "Pref"
     pytest: List
+    concurrent: bool
 
 
 @dataclass

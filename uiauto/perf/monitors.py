@@ -38,40 +38,35 @@ class Monitors:
     def remove_monitor(self, monitor):
         self.monitors.remove(monitor)
 
-    def run(self):
-        from uiauto.android.adb import ADB
+    def run(self, serial=None, path=None):
         app = config.perf.package
         frequency = config.perf.frequency
         t = settings.current_time
-        adb = ADB()
-        adb_devices = {item[0]: item[1] for item in adb.adb.devices()}
-        for serial, _ in adb_devices.items():
-            path = settings.perf_path / serial
-            if not path.exists:
-                path.mkdir()
-            self.add_monitor(
-                CpuMonitor(device_id=serial, packages=[app], interval=frequency, path=path))
-            self.add_monitor(
-                FPSMonitor(device_id=serial, package_name=app, frequency=frequency, path=path))
-            self.add_monitor(
-                MemMonitor(device_id=serial, packages=[app], interval=frequency, path=path))
-            self.add_monitor(
-                ThreadNumMonitor(device_id=serial, packagename=app, interval=frequency,
-                                 path=path))
-            if len(self.monitors):
-                for monitor in self.monitors:
-                    # 启动所有的monitors
-                    try:
-                        monitor.start(t)
-                    except Exception as e:
-                        logger.error(e)
-
-                # logcat的代码可能会引起死锁，拎出来单独处理logcat
+        if not path.exists:
+            path.mkdir()
+        self.add_monitor(
+            CpuMonitor(device_id=serial, packages=[app], interval=frequency, path=path))
+        self.add_monitor(
+            FPSMonitor(device_id=serial, package_name=app, frequency=frequency, path=path))
+        self.add_monitor(
+            MemMonitor(device_id=serial, packages=[app], interval=frequency, path=path))
+        self.add_monitor(
+            ThreadNumMonitor(device_id=serial, packagename=app, interval=frequency,
+                             path=path))
+        if len(self.monitors):
+            for monitor in self.monitors:
+                # 启动所有的monitors
                 try:
-                    self.logcat_monitor = LogcatMonitor(device_id=serial, path=path)
-                    self.logcat_monitor.start(t)
+                    monitor.start(t)
                 except Exception as e:
                     logger.error(e)
+
+            # logcat的代码可能会引起死锁，拎出来单独处理logcat
+            try:
+                self.logcat_monitor = LogcatMonitor(device_id=serial, path=path)
+                self.logcat_monitor.start(t)
+            except Exception as e:
+                logger.error(e)
 
     def stop(self):
         for monitor in self.monitors:

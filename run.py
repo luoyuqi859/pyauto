@@ -8,6 +8,7 @@
 import argparse
 import asyncio
 import shutil
+import time
 from concurrent.futures import ProcessPoolExecutor
 import pytest
 
@@ -84,9 +85,12 @@ async def notify():
 
 async def main(d=None):
     await pytest_run(d)
-    await asyncio.create_task(env_file_move())
-    await asyncio.create_task(excel_report())
-    await asyncio.create_task(notify())
+    task_env = asyncio.create_task(env_file_move())
+    task_excel = asyncio.create_task(excel_report())
+    task_notify = asyncio.create_task(notify())
+    tasks = [task_env, task_excel, task_notify]
+    for task in tasks:
+        await task
     # 程序运行之后，自动启动报告，如果不想启动报告，可注释这段代码,
     execute_command(f"{settings.allure_bat} open {settings.report_html} -p {settings.localhost_port}")
 
@@ -100,11 +104,20 @@ def start(d=None):
 
 
 def startup():
-    pool = ProcessPoolExecutor()
+    serial = []
     devices = device_pool.devices
-    for serial, device in devices.items():
-        pool.submit(start, serial)
-    pool.shutdown()
+    for s, d in devices.items():
+        d.minicap.install_minicap()
+        serial.append(s)
+
+    if len(serial) > 1 and config.concurrent:
+        pool = ProcessPoolExecutor()
+        for i in serial:
+            time.sleep(1)
+            pool.submit(start, i)
+        pool.shutdown()
+    else:
+        start(serial)
 
 
 if __name__ == '__main__':

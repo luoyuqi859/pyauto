@@ -157,7 +157,7 @@ class AndroidDevice(BaseDevice):
         序列号
         """
         if not self.get('serial'):
-            self['serial'] = ADB().adb.serial
+            self['serial'] = self.d.serial
         return self['serial']
 
     @property
@@ -364,7 +364,7 @@ class AndroidDevice(BaseDevice):
             if len(args) == 2 and isinstance(args[0], (int, float)) and isinstance(args[1], (int, float)):
                 x, y = self.abs_pos(args[0], args[1])
                 self.d.click(x, y)
-                logger.success(f'Click {ele_name or f"position: {x}, {y}"}')
+                logger.success(f'[{self.name}] Click {ele_name or f"position: {x}, {y}"}')
             elif len(args) == 1 and isinstance(args[0], str):
                 try:
                     self(text=args[0]).click()
@@ -378,7 +378,7 @@ class AndroidDevice(BaseDevice):
                 for selector in selectors:
                     selector = self.get_element(**selector)
                     selector.click()
-                logger.success("click element:「{}」".format(kwargs))
+                logger.success(f"[{self.name}] click element:「{kwargs}」")
 
         ele_name = kwargs.get('name', None)
         times = kwargs.get('times', None)
@@ -402,12 +402,12 @@ class AndroidDevice(BaseDevice):
         if isinstance(key, (int, AndroidKeys)):
             for i in range(times):
                 self.d.press(key=key, meta=meta)
-                logger.success(f"press {key}")
+                logger.success(f"[{self.name}] press {key}")
         else:
             key_code = AndroidKeys.get_code(key)
             for i in range(times):
                 self.d.press(key=key_code, meta=meta)
-                logger.success(f"press {key}")
+                logger.success(f"[{self.name}] press {key}")
         return self
 
     def get_element(self, **element):
@@ -430,7 +430,7 @@ class AndroidDevice(BaseDevice):
         selector = self.get_element(**element)
         if not selector.exists:
             raise ElementNotFoundError(f"{element} not found")
-        logger.success(f'assert element exists: {element}, successful')
+        logger.success(f'assert element exists: [{self.name}] {element}, successful')
         return selector
 
     def assert_not_exist(self, **element):
@@ -441,7 +441,7 @@ class AndroidDevice(BaseDevice):
         """
         selector = self.get_element(**element)
         assert not selector.exists, f'{element} exists actually.'
-        logger.success(f'assert element not exists: {element}, successful')
+        logger.success(f'assert element not exists: [{self.name}] {element}, successful')
 
     def send_keys(self, element, sendtext, log_text):
         """
@@ -466,7 +466,7 @@ class AndroidDevice(BaseDevice):
         :return:
         """
         self.d.double_click(x, y, time)
-        logger.info("点击坐标:「{}」,「{}」".format(x, y))
+        logger.info(f"[{self.name}] 点击坐标:「{x}」,「{y}」")
 
     def toast_show(self, text, duration=5):
         """
@@ -476,7 +476,7 @@ class AndroidDevice(BaseDevice):
         :return:
         """
         self.d.toast.show(text, duration)
-        logger.success(f"toast show : {text}")
+        logger.success(f"[{self.name}] toast show : {text}")
 
     def find_elements(self, element, timeout=5):
         """
