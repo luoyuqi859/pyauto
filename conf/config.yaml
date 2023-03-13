@@ -8,7 +8,7 @@ notification_type: 0
 excel_report: True
 # 飞书通知
 lark:
-  webhook: 
+  webhook: xxx
 
 # 多设备并发执行相同用例开关,
 # adb devices 查询到多个序列号时,如果开启此开关,则启动并发执行，每台设备跑相同的用例,最大设备数为电脑的CPU数,
@@ -23,13 +23,13 @@ pytest:
   - --reruns-delay=2 # 失败重测间隔
   - --count=1 # 循环次数
   - --random-order # 随机执行
-#  - D:\pyauto\repos\lxl\test_xxx.py  # 脚本选择 注释执行repos目录下所有用例
+  - D:\pyauto\repos\lxl\test_xxx.py  # 脚本选择 注释执行repos目录下所有用例
 #  - D:\pyauto\repos\GM\TeenDriver\test_teen_driver.py::test_399718  # 脚本选择 注释执行repos目录下所有用例
 
 # 测试对象性能监控 logcat, memory, cpu, fps, thread_num, 确保测试对象日期时间正确
 perf:
   # 性能监控开关
-  switch: False
+  switch: True
   # 对象apk
   package: com.gm.hmi.settings
   frequency: 5

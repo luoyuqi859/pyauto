@@ -8,6 +8,11 @@
 import time
 
 
-def test_1(d_obj):
-    time.sleep(30)
+# def test_1(d_obj):
+#     d_obj[0].press("home")
+#     d_obj[1].press("home")
+#     assert 1 == 2
+
+def test_2(d_obj):
+    d_obj.press("home")
     assert 1 == 2
