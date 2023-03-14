@@ -56,21 +56,25 @@ def pytest_runtest_makereport(item, call):
 def d_obj(cmd_opt):
     """设备对象"""
     opt = ast.literal_eval(cmd_opt) if cmd_opt.__contains__("[") else cmd_opt
-    serial = opt if isinstance(opt, list) else [opt]
-    devices = []
-    for i in serial:
-        device: AndroidDevice = device_pool.find_available_device(serial=i)
-        logger.info(device.d.info)
-        logger.info("初始化设备成功")
-        devices.append(device)
+    if opt!="device_info":
+        serial = opt if isinstance(opt, list) else [opt]
+        devices = []
+        for i in serial:
+            device: AndroidDevice = device_pool.find_available_device(serial=i)
+            logger.info(device.d.info)
+            logger.info("初始化设备成功")
+            devices.append(device)
 
-    if len(devices) == 1:
-        yield devices[0]
-        uninstall_atx(devices[0])
+        if len(devices) == 1:
+            yield devices[0]
+            uninstall_atx(devices[0])
+        else:
+            yield devices
+            for d in devices:
+                uninstall_atx(d)
     else:
-        yield devices
-        for d in devices:
-            uninstall_atx(d)
+        device: AndroidDevice = device_pool.find_available_device()
+        yield device
 
 
 def uninstall_atx(d: AndroidDevice):

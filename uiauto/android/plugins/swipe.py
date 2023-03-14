@@ -46,14 +46,16 @@ class Swipe:
         time.sleep(0.5)
         return self
 
-    def until(self, condition):
+    def until(self, condition, max_times=5):
         assert callable(condition)
         satisfied = condition()
-        while not satisfied:
+        while not satisfied and max_times != 0:
             logger.info("condition not satisfaction, will continue to swipe")
             self.device.swipe(self.fx, self.fy, self.tx, self.ty)
+            max_times -= 1
             time.sleep(0.5)
             satisfied = condition()
+
 
 
 class UiaSwipe(Swipe):
