@@ -20,4 +20,5 @@ pandas
 matplotlib==3.7.0
 faker==17.0.0
 uiautomation==2.0.17
+ruamel.yaml==0.17.21
 
