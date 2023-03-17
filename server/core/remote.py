@@ -95,6 +95,15 @@ class Remote(RemoteBase):
         headers = data.pop('headers')
         return requests.post(url=f'{self.server_url}/api/host/register', data=data, headers=headers)
 
+    @intercept
+    def register_device(self, **data):
+        """
+        注册设备
+        """
+        headers = data.pop('headers')
+        res_data = requests.post(url=f'{self.server_url}/api/device/register', data=data, headers=headers)
+        return res_data
+
 
 if __name__ == '__main__':
     remote = Remote(address="http://127.0.0.1:8888", username="luoyuqi", password="luoyuqi")

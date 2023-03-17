@@ -10,9 +10,12 @@ import os
 import platform
 from types import MethodType, FunctionType
 
+from loguru import logger
+
 from conf import settings
 from server.core.remote import Remote
 from server.core.repo import Repo
+from uiauto.android.pool import device_pool
 from utils import py, config
 from utils.errors import InvalidTestError, InvalidRepoError
 from utils.net import get_host_ip, get_free_port
@@ -53,6 +56,9 @@ class Host(dict):
 
     def register(self):
         self._register_host()
+        logger.info("注册host成功")
+        self._register_devices()
+        logger.info("注册设备成功")
 
     def _register_host(self):
         """
@@ -63,6 +69,16 @@ class Host(dict):
         json_data = self.remote.register_host(**data)
         self.update(**json_data)
         return json_data
+
+    def _register_devices(self):
+        """
+        注册设备
+        """
+        settings.DEVICE_LISTENERS.append('pyauto.server.listener')
+        for device in device_pool.devices.values():
+            data = dict(Name=device.serial, Serial=device.serial, Brand=device.brand, Model=device.model,
+                        Platform="android", PlatformVersion=device.platform_version)
+            self.remote.register_device(**data)
 
     def load_repo(self, **extra):
         # 从repo_root加载

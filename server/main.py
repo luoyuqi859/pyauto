@@ -24,7 +24,6 @@ def startup_event():
     if config.host.remote:
         logger.info("你选择将执行机注册到平台上")
         local_host.port = PORT
-        logger.info("host注册")
         local_host.register()
 
 
