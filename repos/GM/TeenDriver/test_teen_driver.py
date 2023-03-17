@@ -14,6 +14,7 @@ import pytest
 from conf import settings
 from repos.GM.TeenDriver import element
 from repos.GM.keywords.gm_vehicle_sim import GMS
+from server.core.o import test_object
 from uiauto.android.device import AndroidDevice
 
 

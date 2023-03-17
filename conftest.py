@@ -56,7 +56,7 @@ def pytest_runtest_makereport(item, call):
 def d_obj(cmd_opt):
     """设备对象"""
     opt = ast.literal_eval(cmd_opt) if cmd_opt.__contains__("[") else cmd_opt
-    if opt!="device_info":
+    if opt != "device_info":
         serial = opt if isinstance(opt, list) else [opt]
         devices = []
         for i in serial:
@@ -114,3 +114,5 @@ def performance(cmd_opt):
                 pref.all_handle(path=path)
         except Exception as e:
             logger.error(e)
+
+

@@ -35,6 +35,12 @@ def gm_my23_vcu_ecomate_open(path):
     vcu.RadioButtonControl(Name="Run").Click()
 
 
+def gm_my23_vcu_ecomate_open1():
+    vcu = AiUiAutomation.WindowControl(Name='VCU')
+    vcu.SetActive()
+    vcu.RadioButtonControl(Name="Acc").Click()
+
+
 def gm_my23_vcu_close():
     vcu = AiUiAutomation.WindowControl(Name='VCU')
     AiUiAutomation.setWindowActive(vcu)
@@ -45,3 +51,4 @@ def gm_my23_vcu_close():
 if __name__ == '__main__':
     gm_my23_vcu_ecomate_open(r'D:\vcu\GMVehicleSimulator\GMVehicleSim.exe')
     # gm_my23_vcu_close()
+    # gm_my23_vcu_ecomate_open1()

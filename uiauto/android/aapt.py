@@ -9,7 +9,7 @@ import os
 import re
 import subprocess
 
-from panda.utils.path import Path
+from utils.path_fun import Path
 
 
 def location(v=None):

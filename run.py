@@ -7,9 +7,11 @@
 """
 import argparse
 import asyncio
+import concurrent
 import shutil
 import time
 from concurrent.futures import ProcessPoolExecutor
+
 import pytest
 
 from conf import settings
@@ -24,7 +26,7 @@ from utils.log import logger
 from utils.model import NotificationType
 
 
-async def pytest_run(d=None):
+def pytest_run(d=None) -> None:
     logger.info(
         f"""
                            _ooOoo_
@@ -53,10 +55,14 @@ async def pytest_run(d=None):
     parser.add_argument('--case', type=str)
     args = parser.parse_args()
     case = args.case
-    pytest_args = [f'--alluredir={settings.report_tmp}', "--clean-alluredir", f"--cmdopt={d}"] + config.pytest
-    case_list = case.split(";") if case else []
-    for i in case_list:
-        pytest_args.append(i)
+    pytest_args = [f'--alluredir={settings.report_tmp}', "--clean-alluredir"]
+    if d:
+        pytest_args.append(f"--cmdopt={d}")
+    pytest_args.extend(config.pytest)
+    if case:
+        case_list = case.split(";")
+        for i in case_list:
+            pytest_args.append(i)
     pytest.main(pytest_args, plugins=[CommonPlugin()])
     execute_command(f"{settings.allure_bat} generate {settings.report_tmp} -o {settings.report_html} --clean")
 
@@ -65,15 +71,15 @@ async def env_file_move():
     shutil.copy(src=settings.root_path / "conf" / "categories.json", dst=settings.report_tmp)
     shutil.copy(src=settings.root_path / "conf" / "environment.properties", dst=settings.report_tmp)
     shutil.copy(src=settings.root_path / "conf" / "executor.json", dst=settings.report_tmp)
-    shutil.copy(src=settings.root_path / "utils" / "openReport.bat", dst=settings.report_path)
+    shutil.copy(src=settings.root_path / "conf" / "openReport.bat", dst=settings.report_path)
 
 
-async def excel_report():
+async def excel_report() -> None:
     if config.excel_report:
         ErrorCaseExcel(settings.report_path).write_case()
 
 
-async def notify():
+async def notify() -> None:
     allure_data = AllureDataCollect(settings.report_path)
     data = allure_data.get_case_count()
     notification_mapping = {
@@ -84,18 +90,22 @@ async def notify():
 
 
 async def main(d=None):
-    await pytest_run(d)
-    task_env = asyncio.create_task(env_file_move())
-    task_excel = asyncio.create_task(excel_report())
-    task_notify = asyncio.create_task(notify())
-    tasks = [task_env, task_excel, task_notify]
-    for task in tasks:
-        await task
-    # 程序运行之后，自动启动报告，如果不想启动报告，可注释这段代码,
-    execute_command(f"{settings.allure_bat} open {settings.report_html} -p {settings.localhost_port}")
+    pytest_run(d)
+    start_time = time.time()
+    tasks = [
+        asyncio.create_task(env_file_move()),
+        asyncio.create_task(excel_report()),
+        asyncio.create_task(notify())
+    ]
+    await asyncio.gather(*tasks)
+    end_time = time.time()
+    print("Execution time:", end_time - start_time)
+    # 启动子进程自动打开报告
+    cmd = f"{settings.allure_bat} open {settings.report_html} -p {settings.localhost_port}"
+    await asyncio.create_subprocess_shell(cmd)
 
 
-def start(d=None):
+def start(d=None) -> None:
     """启动入口"""
     try:
         asyncio.run(main(d))
@@ -104,20 +114,20 @@ def start(d=None):
 
 
 def startup():
-    serial = []
-    devices = device_pool.devices
-    for s, d in devices.items():
-        d.minicap.install_minicap()
-        serial.append(s)
+    serials = list(device_pool.devices.keys())
+    for device in device_pool.devices.values():
+        device.minicap.install_minicap()
 
-    if len(serial) > 1 and config.concurrent:
-        pool = ProcessPoolExecutor()
-        for i in serial:
-            time.sleep(1)
-            pool.submit(start, i)
-        pool.shutdown()
+    if len(serials) > 1 and config.concurrent:
+        with ProcessPoolExecutor() as executor:
+            futures = [executor.submit(start, s) for s in serials]
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    future.result()
+                except Exception as exc:
+                    print(f'Generated an exception: {exc}')
     else:
-        start(serial)
+        start(serials)
 
 
 if __name__ == '__main__':

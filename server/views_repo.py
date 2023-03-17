@@ -5,17 +5,17 @@
 @File: views_repo
 @Created: 2023/3/6 10:06
 """
-import time
 
 from fastapi import APIRouter
 
+from conf import settings
+from server.core.collector import MyCollector
 from server.core.host import local_host
-from server.core.loader import TestLoader
 
 router = APIRouter(prefix="/repo")
 
 
-@router.get("/api/list")
+@router.get("/list")
 async def get_repos():
     """
     获取所有脚本仓库
@@ -31,22 +31,54 @@ async def get_repos():
     return {"data": data}
 
 
-@router.get("/api/{repo_name}/scripts")
-async def get_repo_scripts(repo_name: str):
+@router.get("/scripts")
+async def get_scripts():
+    """
+    获取repos中所有脚本
+    :param request:
+    :return:
+    """
+    local_collect = MyCollector(settings.repos_path)
+    local_collect.collect()
+    collections = local_collect.items
+    data = []
+    for address, _ in collections.items():
+        data.append(address)
+    return {
+        "data": data,
+        "total": len(data)
+    }
+
+
+@router.get("/scripts/{repo_name}")
+async def get_scripts_repo(repo_name: str):
     """
     获取指定仓库中的所有测试脚本
     :param request:
     :param repo_name:
     :return:
     """
-    repo = local_host.get_repo(repo_name)
-    loader = TestLoader()
-    loader.load_path(repo.path, include_objects=True)
+    local_collect = MyCollector(settings.repos_path / repo_name)
+    local_collect.collect()
+    collections = local_collect.items
     data = []
-    for s in repo.script_list or []:
-        info = dict(
-            test_name=s.test_name,
-            pytest_name=s.pytest_name,
-        )
-        data.append(info)
-    return {"data": data}
+    for address, _ in collections.items():
+        data.append(address)
+    return {
+        "data": data,
+        "total": len(data)
+    }
+
+# @router.post("/scripts/add")
+# async def add_test_path():
+#     """
+#     获取指定仓库中的所有测试脚本
+#     :param request:
+#     :param repo_name:
+#     :return:
+#     """
+#     # local_collect = MyCollector(settings.repos_path / repo_name)
+#     return {
+#         "data": data,
+#         "total": len(data)
+#     }

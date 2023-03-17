@@ -17,6 +17,7 @@ report_path = root_path / "report" / config.project_name / current_time
 report_tmp = report_path / "tmp"
 report_html = report_path / "html"
 repos_path = root_path / "repos"
+config_path = root_path / "conf"
 
 server_path = root_path / "server"
 perf_path = report_path / "perf"  # 性能数据路径

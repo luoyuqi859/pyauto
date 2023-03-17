@@ -1,23 +1,14 @@
 # 测试项目,根据所填写内容，会在报告中生成相关项目的报告
 project_name: GM
-
-
 # 测试人员名称，作用于自动生成代码的作者，以及发送企业微信、钉钉通知的测试负责人
 tester_name: 罗宇琦
-
-
 # 报告通知类型：0: 不发送通知 1：飞书通知
 notification_type: 0
-
-
 # 收集失败的用例开关，整理成excel报告的形式
 excel_report: true
-
-
 # 飞书通知
 lark:
   webhook: xxx
-
 
 # 多设备并发执行相同用例开关,
 # adb devices 查询到多个序列号时,如果开启此开关,则启动并发执行，每台设备跑相同的用例,最大设备数为电脑的CPU数,
@@ -26,35 +17,27 @@ lark:
 # 多设备情况下且并发开发打开，无法执行设备交互用例
 concurrent: false
 
-
 # pytest相关配置
 pytest:
-- --reruns-delay=2   # 失败重测间隔
-- --random-order   # 随机执行
-- D:\pyauto\repos\lxl\test_xxx.py    # 脚本选择 注释执行repos目录下所有用例
+  - --reruns=1  # 失败重测次数
+  - --reruns-delay=2 # 失败重测间隔
+  - --count=1 # 循环次数
+  - --random-order # 随机执行
+  - D:\pyauto\repos\lxl\test_xxx.py  # 脚本选择 注释执行repos目录下所有用例
 #  - D:\pyauto\repos\GM\TeenDriver\test_teen_driver.py::test_399718  # 脚本选择 注释执行repos目录下所有用例
-- --reruns=3
-- --reruns-delay=5
-- --count=3
+
+# 测试对象性能监控 logcat, memory, cpu, fps, thread_num, 确保测试对象日期时间正确
 perf:
   # 性能监控开关
-  switch: false
+  switch: False
   # 对象apk
   package: com.gm.hmi.settings
   frequency: 5
 
-
 # 执行主机注册相关
 host:
-  remote: true
   name: vcu
   category: private
   address: http://10.4.17.56:8888
   username: luoyuqi
   password: luoyuqi
-
-
-
-
-
-

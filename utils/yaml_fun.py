@@ -6,8 +6,10 @@
 @Created: 2023/2/17 17:19
 """
 import os
-
+from ruamel.yaml import YAML
 import yaml.scanner
+
+from utils import ensure_path_sep
 
 
 class GetYamlData:
@@ -30,36 +32,42 @@ class GetYamlData:
             raise FileNotFoundError("文件路径不存在")
         return res
 
-    def write_yaml_data(self, key: str, value) -> int:
+    def write_yaml_data(self, key: str, value):
         """
-        更改 yaml 文件中的值, 并且保留注释内容
-        :param key: 字典的key
+        更改 yaml 文件中的值，并保留注释内容
+        :param key: 字典的键
         :param value: 写入的值
         :return:
         """
+        yaml = YAML()
         with open(self.file_dir, 'r', encoding='utf-8') as file:
-            # 创建了一个空列表，里面没有元素
-            lines = []
-            for line in file.readlines():
-                if line != '\n':
-                    lines.append(line)
-            file.close()
+            data = yaml.load(file)
+
+        if key in data:
+            # 如果 key 对应的值是一个列表，可以直接对列表进行增删操作
+            if isinstance(data[key], list):
+                for item in value:
+                    if item not in data[key]:
+                        data[key].append(item)
+                for item in data[key]:
+                    if item not in value:
+                        data[key].remove(item)
+            else:
+                data[key] = value
 
         with open(self.file_dir, 'w', encoding='utf-8') as file:
-            flag = 0
-            for line in lines:
-                left_str = line.split(":")[0]
-                if key == left_str and '#' not in line:
-                    newline = f"{left_str}: {value}"
-                    line = newline
-                    file.write(f'{line}\n')
-                    flag = 1
-                else:
-                    file.write(f'{line}')
-            file.close()
-            return flag
+            yaml.dump(data, file)
 
 
 if __name__ == '__main__':
-    f = GetYamlData("E:\py-runner\pyAuto\conf\config.yaml").get_yaml_data()
-    print(f)
+    value = [
+        "--reruns=3",  # 失败重测次数改为3
+        "--reruns-delay=5",  # 失败重测间隔改为5秒
+        "--count=2",  # 循环次数改为2
+        "--random-order",  # 随机执行
+        r"D:\pyauto\repos\lxl\test_xxx.py"  # 脚本选择 注释执行repos目录下所有用例
+    ]
+    _data = GetYamlData(ensure_path_sep("\\conf\\test.yaml")).write_yaml_data("pytest", value)
+    # pytest_condition = _data.get("pytest")
+    # new_data = pytest_condition.append("")
+    f = _data

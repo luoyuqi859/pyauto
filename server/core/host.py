@@ -11,8 +11,9 @@ import platform
 from types import MethodType, FunctionType
 
 from conf import settings
+from server.core.remote import Remote
 from server.core.repo import Repo
-from utils import py
+from utils import py, config
 from utils.errors import InvalidTestError, InvalidRepoError
 from utils.net import get_host_ip, get_free_port
 from utils.path_fun import Path
@@ -40,13 +41,28 @@ def parse_repo_root(path):
 class Host(dict):
     def __init__(self, ip=None, port=None):
         super().__init__()
-        self.name = None
+        self.name = config.host.name
         self.workspace = settings.repos_path
         self.ip = ip or get_host_ip()
         self.port = port or get_free_port()
         self.sys_version = f'{platform.system()} {platform.version()}, {platform.processor()}, python {platform.python_version()}'
+        self.remote = Remote(name=self.name, address=config.host.address, username=config.host.username,
+                             password=config.host.password)
         self.repos = []
         self.load_repo()
+
+    def register(self):
+        self._register_host()
+
+    def _register_host(self):
+        """
+        注册执行主机
+        """
+        data = dict(Name=self.name, Ip=self.ip, Port=self.port, Category=config.host.category,
+                    Platform=self.sys_version)
+        json_data = self.remote.register_host(**data)
+        self.update(**json_data)
+        return json_data
 
     def load_repo(self, **extra):
         # 从repo_root加载
@@ -101,3 +117,6 @@ class Host(dict):
 
 
 local_host = Host()
+
+if __name__ == '__main__':
+    local_host.register()

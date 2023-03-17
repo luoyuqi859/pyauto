@@ -14,5 +14,11 @@ import time
 #     assert 1 == 2
 
 def test_2(d_obj):
-    d_obj.press("home")
-    assert 1 == 2
+    pass
+    # d_obj.swipe.down.until_exists(text="xxxx")
+
+
+class TestXXX():
+
+    def test_123123(self):
+        pass

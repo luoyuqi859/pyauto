@@ -23,6 +23,15 @@ class Pref(BaseModel):
     frequency: int
 
 
+class Host(BaseModel):
+    remote: bool
+    name: Text
+    category: Text
+    address: Text
+    username: Text
+    password: Text
+
+
 class NotificationType(Enum):
     """ 自动化通知方式 """
     DEFAULT = 0
@@ -41,6 +50,7 @@ class Config(BaseModel):
     perf: "Pref"
     pytest: List
     concurrent: bool
+    host: "Host"
 
 
 @dataclass
