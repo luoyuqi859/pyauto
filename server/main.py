@@ -7,6 +7,7 @@
 """
 from fastapi import FastAPI
 from loguru import logger
+from starlette.middleware.cors import CORSMiddleware
 
 from server import views_repo, views_task
 from server.core.host import local_host
@@ -27,6 +28,20 @@ def startup_event():
         local_host.register()
 
 
+@app.get('/ping')
+def pong():
+    return "pong"
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 if __name__ == '__main__':
     import uvicorn
+
     uvicorn.run(app="main:app", host="0.0.0.0", port=PORT, reload=True)

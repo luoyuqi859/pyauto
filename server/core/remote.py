@@ -33,11 +33,11 @@ def intercept(func):
             # "Accept-Encoding": "gzip, deflate",
             # "Content-Type": "application/json",
         }
-        data = {
-            **kwargs,
-            "Owner": self.owner
-        }
-        res = func(self, *args, **data, headers=headers)
+        # data = {
+        #     **kwargs,
+        #     "Owner": self.owner
+        # }
+        res = func(self, *args, **kwargs, headers=headers)
         if res.status_code not in [200, 201]:
             print(res.text)
         if 'ExpiredSignatureError' in res.text or res.status_code == 403:
@@ -79,7 +79,7 @@ class Remote(RemoteBase):
             res.raise_for_status()
             data = res.json().get('data')
             self.token = data.get('token')
-            self.owner = data.get('user').get('nickName')
+            # self.owner = data.get('user').get('nickName')
             self._connected = True
         except ConnectionError:
             self._connected = False

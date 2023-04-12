@@ -11,7 +11,7 @@ notification_type: 0
 
 
 # 收集失败的用例开关，整理成excel报告的形式
-excel_report: true
+excel_report: false
 
 
 # 飞书通知
@@ -29,13 +29,12 @@ concurrent: false
 
 # pytest相关配置
 pytest:
-- --reruns-delay=2   # 失败重测间隔
-- --random-order   # 随机执行
-- D:\pyauto\repos\lxl\test_xxx.py    # 脚本选择 注释执行repos目录下所有用例
+  - --reruns=1  # 失败重测次数
+  - --reruns-delay=2 # 失败重测间隔
+  - --count=1 # 循环次数
+  - --random-order # 随机执行
+  - D:\pyauto\repos\lxl\test_xxx.py  # 脚本选择 注释执行repos目录下所有用例
 #  - D:\pyauto\repos\GM\TeenDriver\test_teen_driver.py::test_399718  # 脚本选择 注释执行repos目录下所有用例
-- --reruns=3
-- --reruns-delay=5
-- --count=3
 perf:
   # 性能监控开关
   switch: false
@@ -50,8 +49,8 @@ host:
   name: vcu
   category: private
   address: http://10.4.17.56:8888
-  username: luoyuqi
-  password: luoyuqi
+  username: admin
+  password: admin
 
 
 

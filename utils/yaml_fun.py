@@ -63,11 +63,11 @@ if __name__ == '__main__':
     value = [
         "--reruns=3",  # 失败重测次数改为3
         "--reruns-delay=5",  # 失败重测间隔改为5秒
-        "--count=2",  # 循环次数改为2
+        "--count=1",  # 循环次数改为2
         "--random-order",  # 随机执行
         r"D:\pyauto\repos\lxl\test_xxx.py"  # 脚本选择 注释执行repos目录下所有用例
     ]
-    _data = GetYamlData(ensure_path_sep("\\conf\\test.yaml")).write_yaml_data("pytest", value)
+    _data = GetYamlData(ensure_path_sep("\\conf\\config.yaml")).write_yaml_data("pytest", value)
     # pytest_condition = _data.get("pytest")
     # new_data = pytest_condition.append("")
     f = _data
