@@ -5,6 +5,7 @@
 @File: views_task
 @Created: 2023/3/17 17:23
 """
+import asyncio
 import os
 from typing import List
 import subprocess
@@ -12,7 +13,7 @@ from fastapi import APIRouter, BackgroundTasks, WebSocket
 from pydantic import BaseModel
 
 from conf import settings
-from utils import GetYamlData
+from utils import GetYamlData, net
 from utils.path_fun import Path, ensure_path_sep
 
 router = APIRouter(prefix="/task")
@@ -86,6 +87,29 @@ async def task_run(websocket: WebSocket):
             await websocket.send_text('task_finished')
             await websocket.close()
             break
+
+
+@router.get("/report")
+async def view_report():
+    # async def open_report():
+    folder_path = settings.project_path
+    if os.path.exists(folder_path):
+        items = os.listdir(folder_path)
+        folders = [item for item in items if os.path.isdir(os.path.join(folder_path, item))]
+        if not folders:
+            return {"message": "没有找到报告文件,请先执行用例"}
+        folders.sort(key=lambda x: os.path.getmtime(os.path.join(folder_path, x)))
+        last_folder_path = Path(folder_path) / folders[-1] / "html"
+        if not os.path.exists(last_folder_path):
+            return {"message": "没有找到报告文件,请先执行用例"}
+        cmd = f"{settings.allure_bat} open {last_folder_path} -p {net.get_free_port()}"
+        os.popen(cmd)
+        return {"message": "打开报告成功！"}
+    else:
+        return {"message": "没有找到报告文件,请先执行用例"}
+    # background_tasks.add_task(open_report)
+    # return {"message": "正在打开报告..."}
+
 
 
 class Item(BaseModel):

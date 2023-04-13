@@ -8,6 +8,7 @@
 import os
 import platform
 import re
+import stat
 import subprocess
 import threading
 import time
@@ -22,34 +23,59 @@ from utils.path_fun import Path
 from utils.s import Str
 from utils.time_fun import timeoperator
 
+DEFAULT_ADB_PATH = {
+    "Windows": Path(__file__).parent / 'sdk' / 'adb' / 'windows' / 'adb.exe',
+    "Darwin": Path(__file__).parent / 'sdk' / 'adb' / 'mac' / 'adb',
+    "Linux": Path(__file__).parent / 'sdk' / 'adb' / 'linux' / 'adb',
+    "Linux-x86_64": Path(__file__).parent / 'sdk' / 'adb' / 'linux' / 'adb',
+    "Linux-armv7l": Path(__file__).parent / 'sdk' / 'adb' / 'linux_arm' / 'adb',
+}
+
+
+def make_file_executable(file_path):
+    """
+    If the path does not have executable permissions, execute chmod +x
+    :param file_path:
+    :return:
+    """
+    if os.path.isfile(file_path):
+        mode = os.lstat(file_path)[stat.ST_MODE]
+        executable = True if mode & stat.S_IXUSR else False
+        if not executable:
+            os.chmod(file_path, mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        return True
+    return False
+
+
+def builtin_adb_path():
+    """
+    Return built-in adb executable path
+
+    Returns:
+        adb executable path
+
+    """
+    p = whichcraft.which("adb")
+    if p is None:
+        system = platform.system()
+        logger.debug(f"platform : {system}")
+        adb_path = DEFAULT_ADB_PATH.get(system)
+        if system != "Windows":
+            # chmod +x adb
+            make_file_executable(adb_path)
+        return adb_path
+    else:
+        return "adb"
+
 
 class AdbOperator:
 
     def __init__(self, device_id=None):
-        self._adb_path = AdbOperator.location()
+        self._adb_path = builtin_adb_path()
         self._device_id = device_id
         self.before_connect = True
         self.after_connect = True
         self._sdk_version = None
-
-    @staticmethod
-    def location():
-        """获取ADB路径"""
-        p = whichcraft.which("adb")
-        if p is None:
-            os_name = platform.system()
-            logger.debug(f"platform : {os_name}")
-            if os_name == "Windows":
-                adb_dir = Path(__file__).parent / 'sdk' / 'adb.exe'
-                return os.path.abspath(adb_dir)
-            elif os_name == "Darwin":
-                adb_dir = Path(__file__).parent / 'sdk' / 'platform-tools-latest-darwin' / 'platform-tools' / 'adb'
-                return os.path.abspath(adb_dir)
-            else:
-                adb_dir = Path(__file__).parent / 'sdk' / 'platform-tools-latest-linux' / 'platform-tools' / 'adb'
-                return os.path.abspath(adb_dir)
-        else:
-            return "adb"
 
     @property
     def serial(self):
@@ -656,15 +682,17 @@ class ADB():
 
 
 if __name__ == '__main__':
-    a = ADB()
-    # a.adb.run_shell_cmd("mkdir /data/local/tmp")
-    print(a.adb.path("/data/local/tmp/minicap").exists)
-    print(Path(__file__).parent / 'sdk' / 'adb.exe')
-    print(a.adb.location())
-    print(a.adb.serial)
-    print(a.adb.phone_brand)
-    print(a.adb.phone_model)
-    print(a.adb.screen_size)
-    print(a.adb.sdk_version)
-    print(a.adb.get_cpu_abi())
-    print(a.adb.serial)
+    os_name = builtin_adb_path()
+    print(os_name)
+    # a = ADB()
+    # # a.adb.run_shell_cmd("mkdir /data/local/tmp")
+    # print(a.adb.path("/data/local/tmp/minicap").exists)
+    # print(Path(__file__).parent / 'sdk' / 'adb.exe')
+    # print(a.adb.location())
+    # print(a.adb.serial)
+    # print(a.adb.phone_brand)
+    # print(a.adb.phone_model)
+    # print(a.adb.screen_size)
+    # print(a.adb.sdk_version)
+    # print(a.adb.get_cpu_abi())
+    # print(a.adb.serial)

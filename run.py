@@ -8,10 +8,10 @@
 import argparse
 import asyncio
 import concurrent
+import os
 import shutil
 import time
 from concurrent.futures import ProcessPoolExecutor
-
 import pytest
 
 from conf import settings
@@ -100,9 +100,23 @@ async def main(d=None):
     await asyncio.gather(*tasks)
     end_time = time.time()
     print("Execution time:", end_time - start_time)
-    # 启动子进程自动打开报告
-    cmd = f"{settings.allure_bat} open {settings.report_html} -p {settings.localhost_port}"
-    await asyncio.create_subprocess_shell(cmd)
+    # folder_path = settings.project_path
+
+    # # 获取文件夹中所有文件和文件夹的名称列表，并按照修改时间排序
+    # items = os.listdir(folder_path)
+    # items.sort(key=lambda x: os.path.getmtime(os.path.join(folder_path, x)))
+    # last_folder_name = ''
+    # # 查找最后一个文件夹的名称
+    # for item in reversed(items):
+    #     if os.path.isdir(os.path.join(folder_path, item)):
+    #         last_folder_name = item
+    #         break
+    #
+    # # 得到最后一次生成的文件夹路径
+    # last_folder_path = folder_path / last_folder_name / "html"
+    # # 启动子进程自动打开报告
+    # cmd = f"{settings.allure_bat} open {settings.report_html} -p {settings.localhost_port}"
+    # await asyncio.create_subprocess_shell(cmd)
 
 
 def start(d=None) -> None:
