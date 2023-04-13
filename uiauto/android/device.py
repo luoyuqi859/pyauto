@@ -28,7 +28,7 @@ from uiauto.android.plugins.bt import Bluetooth
 from uiauto.android.plugins.event import Event
 from uiauto.android.plugins.forward import Forward
 from uiauto.android.plugins.minicap import Minicap
-from uiauto.android.plugins.ocr import Ocr
+
 from uiauto.android.plugins.page import AndroidPage
 from uiauto.android.plugins.prop import Prop
 from uiauto.android.plugins.qs import QuickSettings
@@ -166,6 +166,7 @@ class AndroidDevice(BaseDevice):
 
     @property
     def ocr(self):
+        from uiauto.android.plugins.ocr import Ocr
         if not self._ocr:
             self._ocr = Ocr(self)
         return self._ocr

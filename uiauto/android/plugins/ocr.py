@@ -26,3 +26,6 @@ class Ocr:
             text.append(line[0][-1][0])
         logger.info(f"ocr: {text}")
         return text
+
+if __name__ == '__main__':
+    ocr = Ocr()
