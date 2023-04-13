@@ -91,7 +91,6 @@ async def task_run(websocket: WebSocket):
 
 @router.get("/report")
 async def view_report():
-    # async def open_report():
     folder_path = settings.project_path
     if os.path.exists(folder_path):
         items = os.listdir(folder_path)
@@ -102,14 +101,13 @@ async def view_report():
         last_folder_path = Path(folder_path) / folders[-1] / "html"
         if not os.path.exists(last_folder_path):
             return {"message": "没有找到报告文件,请先执行用例"}
-        cmd = f"{settings.allure_bat} open {last_folder_path} -p {net.get_free_port()}"
+        ip = net.get_host_ip()
+        port = net.get_free_port()
+        cmd = f"{settings.allure_bat} open {last_folder_path} -p {port}"
         os.popen(cmd)
-        return {"message": "打开报告成功！"}
+        return {"message": f"报告已生成!如没有自动打开,请手动在浏览器输入:{ip}:{port}"}
     else:
         return {"message": "没有找到报告文件,请先执行用例"}
-    # background_tasks.add_task(open_report)
-    # return {"message": "正在打开报告..."}
-
 
 
 class Item(BaseModel):
