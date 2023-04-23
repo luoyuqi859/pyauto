@@ -14,8 +14,8 @@ import time
 #     assert 1 == 2
 
 def test_2(d_obj):
-    pass
-    # d_obj.swipe.down.until_exists(text="xxxx")
+    d_obj.press("home")
+    d_obj.swipe.down.until_exists(text="xxxx")
 
 
 class TestXXX():

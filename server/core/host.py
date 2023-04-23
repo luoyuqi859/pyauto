@@ -65,7 +65,7 @@ class Host(dict):
         注册执行主机
         """
         data = dict(Name=self.name, Ip=self.ip, Port=self.port, Category=config.host.category,
-                    Platform=self.sys_version, Repo=self.workspace)
+                    Platform=self.sys_version, Repo=self.workspace, Status="在线")
         json_data = self.remote.register_host(**data)
         self.update(**json_data)
         return json_data

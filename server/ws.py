@@ -5,8 +5,15 @@
 @File: ws
 @Created: 2023/3/17 15:15
 """
-from fastapi import WebSocket, WebSocketDisconnect
+import asyncio
+import threading
+import time
+import traceback
 from typing import List
+
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+
+from loguru import logger
 
 
 class ConnectionManager:
@@ -33,3 +40,59 @@ class ConnectionManager:
         # 广播消息
         for connection in self.active_connections:
             await connection.send_text(message)
+
+
+class WebsocketService:
+    def __init__(self):
+        self.__subscribers = []
+        self._working = False
+
+    def send_message(self, message):
+        pass
+
+    def add_subscriber(self, subscriber):
+        self.__subscribers.append(subscriber)
+        self.start()
+
+    def remove_subscriber(self, subscriber):
+        self.__subscribers.remove(subscriber)
+        self.start()
+
+    async def start(self):
+        async def _work():
+            while self._working:
+                if not self.__subscribers:
+                    self._working = False
+                    break
+                for subscriber in self.__subscribers:
+                    try:
+                        await subscriber.work()
+                    except Exception:
+                        logger.error(traceback.format_exc())
+                        pass
+                await asyncio.sleep(0.01)
+
+        if self._working:
+            return
+        logger.info('Start websocket service...')
+        self._working = True
+        t = threading.Thread(target=_work, daemon=True)
+        t.start()
+
+    def stop(self):
+        self._working = False
+
+
+class WebsocketSubscriber:
+    """websocket订阅者"""
+    category = None  # 订阅消息类型
+
+    def __init__(self, websocket: WebSocket):
+        self.websocket = websocket
+        wsService.add_subscriber(self)
+
+    def work(self):
+        pass
+
+
+wsService = WebsocketService()

@@ -67,11 +67,11 @@ def d_obj(cmd_opt):
 
         if len(devices) == 1:
             yield devices[0]
-            uninstall_atx(devices[0])
+            # uninstall_atx(devices[0])
         else:
             yield devices
-            for d in devices:
-                uninstall_atx(d)
+            # for d in devices:
+                # uninstall_atx(d)
     else:
         device: AndroidDevice = device_pool.find_available_device()
         yield device

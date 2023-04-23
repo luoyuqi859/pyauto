@@ -5,6 +5,7 @@
 @File: screenshot
 @Created: 2023/2/27 10:37
 """
+import io
 import os
 
 from uiauto.android.plugins.rotation import Rotation

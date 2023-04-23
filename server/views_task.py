@@ -6,10 +6,16 @@
 @Created: 2023/3/17 17:23
 """
 import asyncio
+import json
 import os
-from typing import List
+import re
 import subprocess
-from fastapi import APIRouter, BackgroundTasks, WebSocket
+import sys
+
+from typing import List
+
+from fastapi import APIRouter, WebSocket
+from loguru import logger
 from pydantic import BaseModel
 
 from conf import settings
@@ -19,74 +25,66 @@ from utils.path_fun import Path, ensure_path_sep
 router = APIRouter(prefix="/task")
 
 
-# @router.post("/run-tasks")
-# async def run_tasks(background_tasks: BackgroundTasks):
-#     import subprocess
-#     # 获取包含 run.py 脚本的目录
-#     script_dir = Path(__file__).parent.parent
-#     # 将当前工作目录设置为脚本目录
-#     os.chdir(script_dir)
-#
-#     async def notify_complete():
-#         subprocess.call(['python', f'{settings.root_path}/run.py'])
-#
-#     background_tasks.add_task(notify_complete)
-#     return {"message": "PyAuto is running in the background."}
+def remove_color_codes(s: str) -> str:
+    """
+    Remove ANSI color codes from a string.
+    """
+    return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', s)
 
 
-# async def run_script():
-#     try:
-#         # 使用 subprocess.Popen() 来启动子进程并执行脚本
-#         proc = subprocess.Popen(['python', f'{settings.root_path}/run.py'], stdout=subprocess.PIPE,
-#                                 stderr=subprocess.PIPE)
-#         out, err = proc.communicate()  # 获取脚本的标准输出和标准错误流
-#         if err:
-#             # 如果脚本有错误输出，则向客户端发送错误消息
-#             raise Exception(f"Script execution failed: {err.decode('utf-8')}")
-#     except Exception as e:
-#         # 发生任何异常时，向客户端发送错误消息
-#         raise Exception(f"Error executing script: {str(e)}")
-#
-#
-# async def notify_complete(websocket: WebSocket):
-#     try:
-#         await run_script()
-#         # 任务执行完成后向前端发送消息
-#         print('task_finished')
-#         await websocket.send_text('task_finished')
-#     except Exception as e:
-#         # 如果运行脚本时出现任何异常，则向客户端发送错误消息
-#         await websocket.send_text(f"Error executing script: {str(e)}")
-
-
-async def run_script_and_notify(websocket: WebSocket):
+async def run_background_task(websocket: WebSocket) -> None:
     try:
-        # 获取包含 run.py 脚本的目录
+        data = await websocket.receive_text()
+        if isinstance(data, bytes):
+            data = data.decode()
+        json_msg = json.loads(data)
+        serial = json_msg.get('serial')
+        if not serial:
+            await websocket.send_json({'message': 'need serial'})
+            return
+
+            # 获取包含 run.py 脚本的目录
         script_dir = Path(__file__).parent.parent
+        logger.info(serial)
+
         # 将当前工作目录设置为脚本目录
-        os.chdir(script_dir)
-        subprocess.call(['python', f'{settings.root_path}/run.py'])
-        await websocket.send_text('task_finished')
+        # os.chdir(script_dir)
+
+        # 启动子进程并取得其进程对象
+        process = await asyncio.create_subprocess_exec(
+            'python', 'run.py', '-s', f'{serial}',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+            cwd=str(script_dir))
+
+        # 读取子进程输出并发送到 WebSocket
+        async for line in process.stdout:
+            message = line.decode().strip()
+            if message:
+                await websocket.send_json({'message': remove_color_codes(message)})
+
+        # 等待子进程退出
+        rc = await process.wait()
+
+        # 发送消息给客户端表示任务已完成
+        await websocket.send_json({'message': f'Task completed with return code {rc}'})
+
     except Exception as e:
-        await websocket.send_text(f"Error executing script: {str(e)}")
+        # 如果发生异常，则将跟踪信息打印到输出缓冲区
+        import traceback
+        traceback.print_exc(file=sys.stdout)
+
+    finally:
+        # 关闭 WebSocket 连接
+        await websocket.send_json({'message': 'task_finished'})
+        await websocket.close()
 
 
 @router.websocket("/ws")
-async def task_run(websocket: WebSocket):
+async def run_task(websocket: WebSocket):
     await websocket.accept()
-
-    while True:
-        data = await websocket.receive_text()
-        if data == 'task_start':
-            # 获取包含 run.py 脚本的目录
-            script_dir = Path(__file__).parent.parent
-            # 将当前工作目录设置为脚本目录
-            os.chdir(script_dir)
-            subprocess.call(['python', f'{settings.root_path}/run.py'])
-            # 任务执行完成后，发送标识消息并关闭 WebSocket 连接
-            await websocket.send_text('task_finished')
-            await websocket.close()
-            break
+    task = asyncio.create_task(run_background_task(websocket))
+    await task
 
 
 @router.get("/report")
@@ -103,8 +101,9 @@ async def view_report():
             return {"message": "没有找到报告文件,请先执行用例"}
         ip = net.get_host_ip()
         port = net.get_free_port()
-        cmd = f"{settings.allure_bat} open {last_folder_path} -p {port}"
-        os.popen(cmd)
+        cmd = f"{settings.allure_bat} open {last_folder_path} -h {ip} -p {port}"
+        await asyncio.create_subprocess_shell(cmd)
+        # os.popen(cmd)
         return {"message": f"报告已生成!如没有自动打开,请手动在浏览器输入:{ip}:{port}"}
     else:
         return {"message": "没有找到报告文件,请先执行用例"}
