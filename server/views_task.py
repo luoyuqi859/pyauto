@@ -49,22 +49,21 @@ async def run_background_task(websocket: WebSocket) -> None:
 
         # 将当前工作目录设置为脚本目录
         # os.chdir(script_dir)
-
         # 启动子进程并取得其进程对象
-        process = await asyncio.create_subprocess_exec(
-            'python', 'run.py', '-s', f'{serial}',
+        run_process = await asyncio.create_subprocess_exec(
+            sys.executable, 'run.py', '-s', f'{serial}',
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
             cwd=str(script_dir))
 
         # 读取子进程输出并发送到 WebSocket
-        async for line in process.stdout:
+        async for line in run_process.stdout:
             message = line.decode().strip()
             if message:
                 await websocket.send_json({'message': remove_color_codes(message)})
 
         # 等待子进程退出
-        rc = await process.wait()
+        rc = await run_process.wait()
 
         # 发送消息给客户端表示任务已完成
         await websocket.send_json({'message': f'Task completed with return code {rc}'})

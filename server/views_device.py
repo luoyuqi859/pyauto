@@ -8,13 +8,13 @@
 import asyncio
 import base64
 import json
-import sys
 from io import BytesIO
 
 from fastapi import APIRouter, WebSocket
 from loguru import logger
 from starlette.websockets import WebSocketDisconnect
 
+from server.ws_scrcpy import ScrcpyWSHandler
 from uiauto.android.device import AndroidDevice, connect
 
 router = APIRouter(prefix="/device")
@@ -125,3 +125,17 @@ async def task_run(websocket: WebSocket):
     await task
 
 
+@router.websocket("/ws/scrcpy/screen")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    handler = ScrcpyWSHandler(websocket)
+
+    await handler.connect()
+    try:
+        await handler.receive()
+    except:
+        handler.disconnect()
+    # try:
+    #     await handler.receive()
+    # except WebSocketDisconnect:
+    #     handler.disconnect()

@@ -65,7 +65,7 @@ class Host(dict):
         注册执行主机
         """
         data = dict(Name=self.name, Ip=self.ip, Port=self.port, Category=config.host.category,
-                    Platform=self.sys_version, Repo=self.workspace, Status="在线")
+                    Platform=self.sys_version, Repo=self.workspace)
         json_data = self.remote.register_host(**data)
         self.update(**json_data)
         return json_data
@@ -74,10 +74,11 @@ class Host(dict):
         """
         注册设备
         """
+        host = self["data"]["host"]["ID"]
         settings.DEVICE_LISTENERS.append('pyauto.server.listener')
         for device in device_pool.devices.values():
             data = dict(Name=device.serial, Serial=device.serial, Brand=device.brand, Model=device.model,
-                        Platform="android", PlatformVersion=device.platform_version)
+                        Platform="android", PlatformVersion=device.platform_version, Host=host)
             self.remote.register_device(**data)
 
     def load_repo(self, **extra):
