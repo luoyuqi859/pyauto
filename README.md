@@ -1,6 +1,6 @@
 # pyauto框架介绍
 
-移动端Android UI自动化框架
+移动端Android UI自动化框架, 执行引擎部分
 
 ## 框架功能
 
