@@ -1,9 +1,9 @@
 # 测试项目,根据所填写内容，会在报告中生成相关项目的报告
-project_name: LXL
+project_name: xxx
 
 
 # 测试人员名称，作用于自动生成代码的作者，以及发送企业微信、钉钉通知的测试负责人
-tester_name: 罗宇琦
+tester_name: xxxx
 
 
 # 报告通知类型：0: 不发送通知 1：飞书通知
@@ -39,7 +39,7 @@ perf:
   # 性能监控开关
   switch: false
   # 对象apk
-  package: com.gm.hmi.settings
+  package: com.xx.xxx.settings
   frequency: 5
 
 
@@ -48,7 +48,7 @@ host:
   remote: true
   name: vcu
   category: private
-  address: http://10.4.17.56:8888
+  address: http://xx.xx.xx.xx:8888
   username: admin
   password: admin
 

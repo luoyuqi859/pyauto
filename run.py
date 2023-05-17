@@ -71,7 +71,7 @@ class PyAutoRun:
         ]
         await asyncio.gather(*tasks)
         end_time = time.time()
-        print(f"Execution time: {end_time - start_time}")
+        logger.info(f"Execution time: {end_time - start_time}")
         # # 启动子进程自动打开报告
         # cmd = f"{settings.allure_bat} open {settings.report_html} -p {settings.localhost_port}"
         # await asyncio.create_subprocess_shell(cmd)
