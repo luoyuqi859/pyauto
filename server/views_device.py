@@ -135,7 +135,3 @@ async def websocket_endpoint(websocket: WebSocket):
         await handler.receive()
     except:
         handler.disconnect()
-    # try:
-    #     await handler.receive()
-    # except WebSocketDisconnect:
-    #     handler.disconnect()

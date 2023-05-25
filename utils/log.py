@@ -5,6 +5,7 @@
 @File: log
 @Created: 2023/2/17 14:26
 """
+import threading
 #
 from functools import wraps
 import os
@@ -24,14 +25,18 @@ def singleton_class_decorator(cls):
     """
     # 在装饰器里定义一个字典，用来存放类的实例。
     _instance = {}
+    # 定义线程锁
+    _lock = threading.Lock()
 
     # 装饰器，被装饰的类
     @wraps(cls)
     def wrapper_class(*args, **kwargs):
-        # 判断，类实例不在类实例的字典里，就重新创建类实例
-        if cls not in _instance:
-            # 将新创建的类实例，存入到实例字典中
-            _instance[cls] = cls(*args, **kwargs)
+        # 加锁
+        with _lock:
+            # 判断，类实例不在类实例的字典里，就重新创建类实例
+            if cls not in _instance:
+                # 将新创建的类实例，存入到实例字典中
+                _instance[cls] = cls(*args, **kwargs)
         # 如果实例字典中，存在类实例，直接取出返回类实例
         return _instance[cls]
 
@@ -60,7 +65,7 @@ def singleton(o):
     return o
 
 
-@singleton_class_decorator
+# @singleton_class_decorator
 class Logger:
     def __init__(self):
         self.logger_add()
