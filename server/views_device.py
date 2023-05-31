@@ -14,6 +14,7 @@ from fastapi import APIRouter, WebSocket
 from loguru import logger
 from starlette.websockets import WebSocketDisconnect
 
+from server.ws_manager import websocket_manager
 from server.ws_scrcpy import ScrcpyWSHandler
 from uiauto.android.device import AndroidDevice, connect
 
@@ -93,36 +94,65 @@ class ScreenshotSync():
                 self.worker_task.cancel()
 
 
-async def run_background_task(websocket: WebSocket) -> None:
-    data = await websocket.receive_text()
-    logger.info(data)
-    if data:
-        if isinstance(data, bytes):
-            data = data.decode()
-        json_msg = json.loads(data)
-        serial = json_msg.get('serial')
-        logger.info(serial)
-        if not serial:
-            await websocket.send_json({'message': 'need serial'})
-            return
-        async with ScreenshotSync(websocket=websocket, serial=serial) as screenshot_sync:
-            screenshot_sync.worker_task = asyncio.create_task(screenshot_sync.work())
-            try:
-                while not screenshot_sync.closed:
-                    msg = await websocket.receive_text()
-                    logger.info(msg)
-                    # 将WebSocket消息添加到队列中，以便在下一个轮询周期中处理
-                    await screenshot_sync.message_queue.put(msg)
-            except WebSocketDisconnect:
-                # 如果发生 WebSocketDisconnect 异常，说明 WebSocket 连接被关闭
-                pass
+# async def run_background_task(websocket: WebSocket) -> None:
+#     data = await websocket.receive_text()
+#     logger.info(data)
+#     if data:
+#         if isinstance(data, bytes):
+#             data = data.decode()
+#         json_msg = json.loads(data)
+#         serial = json_msg.get('serial')
+#         logger.info(serial)
+#         if not serial:
+#             await websocket.send_json({'message': 'need serial'})
+#             return
+#         async with ScreenshotSync(websocket=websocket, serial=serial) as screenshot_sync:
+#             screenshot_sync.worker_task = asyncio.create_task(screenshot_sync.work())
+#             try:
+#                 while not screenshot_sync.closed:
+#                     msg = await websocket.receive_text()
+#                     logger.info(msg)
+#                     # 将WebSocket消息添加到队列中，以便在下一个轮询周期中处理
+#                     await screenshot_sync.message_queue.put(msg)
+#             except WebSocketDisconnect:
+#                 # 如果发生 WebSocketDisconnect 异常，说明 WebSocket 连接被关闭
+#                 pass
+
+
+# @router.websocket("/ws")
+# async def task_run(websocket: WebSocket):
+#     await websocket.accept()
+#     task = asyncio.create_task(run_background_task(websocket))
+#     await task
 
 
 @router.websocket("/ws")
 async def task_run(websocket: WebSocket):
-    await websocket.accept()
-    task = asyncio.create_task(run_background_task(websocket))
-    await task
+    await websocket_manager.connect(websocket)
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            logger.info(data)
+            if data:
+                if isinstance(data, bytes):
+                    data = data.decode()
+                json_msg = json.loads(data)
+                serial = json_msg.get('serial')
+                logger.info(serial)
+                if not serial:
+                    await websocket.send_json({'message': 'need serial'})
+                    return
+                async with ScreenshotSync(websocket=websocket, serial=serial) as screenshot_sync:
+                    screenshot_sync.worker_task = asyncio.create_task(screenshot_sync.work())
+                    while not screenshot_sync.closed:
+                        msg = await websocket.receive_text()
+                        logger.info(msg)
+                        # 将WebSocket消息添加到队列中，以便在下一个轮询周期中处理
+                        await screenshot_sync.message_queue.put(msg)
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(websocket)
+        await websocket_manager.broadcast(f"离开")
 
 
 @router.websocket("/ws/scrcpy/screen")

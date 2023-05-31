@@ -18,6 +18,7 @@ from utils import config
 
 PORT = 5555
 app = FastAPI(title="FastApi执行机")
+
 # 注册路由
 app.include_router(views_repo.router)
 app.include_router(views_task.router)
