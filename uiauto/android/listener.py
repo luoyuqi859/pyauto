@@ -7,10 +7,9 @@
 """
 import inspect
 
-from httpx import Proxy
-
 from conf import settings
 from utils import py
+from utils.proxy import Proxy
 
 
 class __ListenService:

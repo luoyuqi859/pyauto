@@ -69,12 +69,12 @@ class PyAutoRun:
             asyncio.create_task(PyAutoRun.excel_report()),
             asyncio.create_task(PyAutoRun.notify())
         ]
-        await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks, return_exceptions=True)
         end_time = time.time()
         logger.info(f"Execution time: {end_time - start_time}")
         # # 启动子进程自动打开报告
-        # cmd = f"{settings.allure_bat} open {settings.report_html} -p {settings.localhost_port}"
-        # await asyncio.create_subprocess_shell(cmd)
+        cmd = f"{settings.allure_bat} open {settings.report_html} -p {settings.localhost_port}"
+        await asyncio.create_subprocess_shell(cmd)
 
     @staticmethod
     def init_arguments():

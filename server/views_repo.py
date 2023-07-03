@@ -15,7 +15,7 @@ from fastapi import APIRouter, Request
 
 from conf import settings
 from server.core.collector import MyCollector
-from server.core.host import local_host
+
 from pydantic import BaseModel
 
 from utils import net
@@ -31,6 +31,7 @@ async def get_repos():
     :param request:
     :return:
     """
+    from server.core.host import local_host
     data = []
     for repo in local_host.repos:
         info = dict(

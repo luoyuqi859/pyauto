@@ -1,61 +1,24 @@
 import asyncio
-import time
 
-
-async def play_game():
-    """玩游戏"""
-    print('start play_game')
-    await asyncio.sleep(1)
-    print("play_game...")
-    await asyncio.sleep(1)
-    print("play_game...")
-    await asyncio.sleep(1)
-    print('end play_game')
-    return "游戏gg了"
-
-
-async def dian_wai_mai():
-    """点外卖"""
-    print("dian_wai_mai")
-    await asyncio.sleep(1)
-    print("wai_mai on the way...")
-    await asyncio.sleep(1)
-    print("wai_mai on the way...")
-    await asyncio.sleep(1)
-    print("wai_mai arrive")
-    return "外卖到了"
-
+async def delay(seconds):
+    print(f"开始休眠 {seconds} 秒")
+    await asyncio.sleep(seconds)
+    print(f"休眠完成")
+    return seconds
 
 async def main():
-    print("start main")
-    future1 = asyncio.create_task(play_game())
-    future2 = asyncio.create_task(dian_wai_mai())
-    ret1 = await future1
-    ret2 = await future2
-    print(ret1, ret2)
-    print("end main")
+    delay_task = asyncio.create_task(delay(2))
+    try:
+        # 通过 asyncio.shield 将 delay_task 保护起来
+        result = await asyncio.wait_for(asyncio.shield(delay_task), 1)
+        print("返回值:", result)
+    except asyncio.TimeoutError:
+        print("超时啦")
+        # 如果超时依旧会引发 TimeoutError，但和之前不同的是
+        # 此时任务不会被取消了，因为 asyncio.shield 会将取消请求忽略掉
+        print("任务是否被取消:", delay_task.cancelled())
+        # 从出现超时的地方，继续执行，并等待它完成
+        result = await delay_task
+        print("返回值:", result)
 
-
-async def main1():
-    print("start main")
-    future1 = asyncio.create_task(play_game())
-    future2 = asyncio.create_task(dian_wai_mai())
-    ret1, ret2 = await asyncio.gather(future1, future2)
-    print(ret1, ret2)
-    print("end main")
-
-
-async def main2():
-    print("start main")
-    future1 = play_game()
-    future2 = dian_wai_mai()
-    ret1, ret2 = await asyncio.gather(future1, future2)
-    print(ret1, ret2)
-    print("end main")
-
-
-if __name__ == '__main__':
-    t1 = time.time()
-    asyncio.run(main())
-    t2 = time.time()
-    print('cost:', t2 - t1)
+asyncio.run(main())

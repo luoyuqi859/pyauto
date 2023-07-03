@@ -45,7 +45,7 @@ perf:
 
 # 执行主机注册相关
 host:
-  remote: true
+  remote: False
   name: vcu
   category: private
   address: http://xx.xx.xx.xx:8888

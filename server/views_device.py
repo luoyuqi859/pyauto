@@ -16,7 +16,7 @@ from starlette.websockets import WebSocketDisconnect
 
 from server.ws_manager import websocket_manager
 from server.ws_scrcpy import ScrcpyWSHandler
-from uiauto.android.device import AndroidDevice, connect
+
 
 router = APIRouter(prefix="/device")
 
@@ -34,6 +34,7 @@ class ScreenshotSync():
         self.message_queue = asyncio.Queue()
 
     async def __aenter__(self):
+        from uiauto.android.device import AndroidDevice, connect
         self.device = AndroidDevice(connect(self.serial))
         return self
 
